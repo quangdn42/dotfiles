@@ -54,7 +54,8 @@
       "space b": "tab_switcher::Toggle",
       "space e": "pane::RevealInProjectPanel",
       "space f": "file_finder::Toggle",
-      "space s s": "project_symbols::Toggle",
+      "space s s": "outline::Toggle",
+      "space s S": "project_symbols::Toggle",
       "H": "pane::ActivatePreviousItem",
       "L": "pane::ActivateNextItem",
       "space \\": "pane::SplitRight",
@@ -151,7 +152,8 @@
       "cmd-enter": "workspace::NewTerminal",
       "ctrl-m": "workspace::ToggleZoom",
       "cmd-x": "terminal::ToggleViMode",
-      "cmd-k": ["terminal::SendKeystroke", "ctrl-l"]
+      "cmd-k": ["terminal::SendKeystroke", "ctrl-l"],
+      "cmd-t": "workspace::NewTerminal"
     }
   },
   // Editor wide

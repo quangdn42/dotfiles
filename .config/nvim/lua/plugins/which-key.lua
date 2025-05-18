@@ -4,6 +4,7 @@ return {
     event = 'VimEnter',
     opts = {
       preset = 'helix',
+      delay = 500,
       icons = {
         mappings = true,
       },
@@ -11,6 +12,7 @@ return {
       -- Document existing key chains
       spec = {
         { '<leader>c', group = 'code', mode = { 'n', 'x' } },
+        { '<leader>d', group = 'debug', mode = { 'n', 'x' } },
         { '<leader>g', group = 'git', mode = { 'n', 'v' } },
         { '<leader>q', group = 'quit/session' },
         { '<leader>s', group = 'search' },
