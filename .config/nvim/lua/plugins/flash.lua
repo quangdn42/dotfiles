@@ -4,7 +4,7 @@ return {
     event = 'VeryLazy',
     ---@type Flash.Config
     opts = {
-      modes = { char = { highlight = { backdrop = false } } },
+      modes = { char = { enabled = false, highlight = { backdrop = false } } },
       labels = 'nrtsgkhaeibldwqfoujzxmcvpy',
     },
     -- stylua: ignore
