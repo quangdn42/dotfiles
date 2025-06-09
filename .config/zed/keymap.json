@@ -153,7 +153,8 @@
       "ctrl-m": "workspace::ToggleZoom",
       "cmd-x": "terminal::ToggleViMode",
       "cmd-k": ["terminal::SendKeystroke", "ctrl-l"],
-      "cmd-t": "workspace::NewTerminal"
+      "cmd-t": "workspace::NewTerminal",
+      "cmd-1": "workspace::ToggleBottomDock"
     }
   },
   // Editor wide
@@ -161,7 +162,8 @@
     // NOTE: This is truly global, no context!
     "bindings": {
       "cmd-o": "projects::OpenRecent",
-      "alt-cmd-o": "workspace::Open"
+      "alt-cmd-o": "workspace::Open",
+      "cmd-2": "terminal_panel::ToggleFocus"
     }
   },
   {
@@ -262,6 +264,16 @@
     "context": "TabSwitcher",
     "bindings": {
       "x": "tab_switcher::CloseSelectedItem"
+    }
+  },
+  // FileFinder split
+  {
+    "context": "FileFinder || (FileFinder > Picker > Editor) || (FileFinder > Picker > menu)",
+    "use_key_equivalents": true,
+    "bindings": {
+      "cmd-shift-p": "file_finder::SelectPrevious",
+      "ctrl-s": "pane::SplitDown",
+      "ctrl-v": "pane::SplitRight"
     }
   }
 ]
