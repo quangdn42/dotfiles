@@ -49,5 +49,35 @@ return {
       end,
     },
   },
+  {
+    'catppuccin/nvim',
+    enabled = false,
+    name = 'catppuccin',
+    priority = 1000,
+    init = function()
+      vim.cmd.colorscheme 'catppuccin'
+    end,
+    opts = {
+      dim_inactive = { enabled = false },
+      integration = {
+        cmp = false,
+        blink_cmp = true,
+        diffview = true,
+      },
+      custom_highlights = function(colors)
+        return {
+          FlashLabel = { fg = colors.crust, bg = colors.red, style = { 'bold' } },
+          -- FlashLabel = { fg = colors.red },
+          FlashMatch = { fg = colors.text, bg = '#355868' },
+          FlashCurrent = { fg = colors.crust, bg = colors.sky },
+          -- InclineNormal = { bg = colors.rosewater, fg = colors.crust },
+          InclineNormal = { fg = colors.peach, bg = colors.crust },
+          CmpItemAbbrMatch = { fg = colors.blue },
+          CmpItemAbbr = { fg = colors.text },
+          PmenuBorder = { bg = colors.text },
+        }
+      end,
+    },
+  },
 }
 -- vim: ts=2 sts=2 sw=2 et

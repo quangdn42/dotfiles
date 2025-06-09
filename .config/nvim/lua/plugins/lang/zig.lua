@@ -3,7 +3,10 @@ return {
     'neovim/nvim-lspconfig',
     opts = {
       servers = {
-        zls = {},
+        zls = {
+          enable_build_on_save = true,
+          semantic_tokens = 'partial',
+        },
       },
     },
   },
