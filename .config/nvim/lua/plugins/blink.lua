@@ -2,7 +2,7 @@ return {
   { 'hrsh7th/nvim-cmp', enabled = false },
   {
     'saghen/blink.cmp',
-    event = 'InsertEnter',
+    event = { 'CmdlineEnter', 'InsertEnter' },
     dependencies = {
       { 'rafamadriz/friendly-snippets' },
       -- to add luasnip look at https://cmp.saghen.dev/configuration/snippets.html#luasnip

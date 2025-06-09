@@ -61,9 +61,9 @@ return {
     },
   },
   {
-    'williamboman/mason.nvim',
+    'mason-org/mason.nvim',
     opts = {
-      ensure_installed = { 'goimports', 'gofumpt' },
+      ensure_installed = { 'goimports', 'gofumpt', 'gomodifytags' },
     },
   },
   {
@@ -77,12 +77,6 @@ return {
   {
     'nvimtools/none-ls.nvim',
     ft = 'go',
-    dependencies = {
-      {
-        'williamboman/mason.nvim',
-        opts = { ensure_installed = { 'gomodifytags' } },
-      },
-    },
     opts = function(_, opts)
       local nls = require 'null-ls'
       opts.sources = vim.list_extend(opts.sources or {}, {

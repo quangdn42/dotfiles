@@ -33,10 +33,6 @@ map('n', '<D-s>', '<cmd>w<cr>', { desc = 'Write File' }) -- for some reason 's' 
 map('n', ']<tab>', '<cmd>tabnext<cr>', { desc = 'Next tab' })
 map('n', '[<tab>', '<cmd>tabprevious<cr>', { desc = 'Previous tab' })
 
--- Diagnostic keymaps
-map('n', ']d', vim.diagnostic.goto_next, { desc = 'Next Diagnostic' })
-map('n', '[d', vim.diagnostic.goto_prev, { desc = 'Prev Diagnostic' })
-
 map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- For qwerty or laptop
