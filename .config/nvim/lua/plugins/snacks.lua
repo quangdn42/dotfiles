@@ -99,8 +99,8 @@ return {
       dashboard = config_dashboard 'cascadia',
       styles = {
         lazygit = {
-          width = 0.99,
-          height = 0.99,
+          width = 0.9999,
+          height = 0.9999,
         },
       },
     },
