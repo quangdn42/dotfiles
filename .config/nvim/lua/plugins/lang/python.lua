@@ -34,14 +34,6 @@ return {
     },
   },
   {
-    'stevearc/conform.nvim',
-    opts = {
-      formatters_by_ft = {
-        python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
-      },
-    },
-  },
-  {
     'linux-cultist/venv-selector.nvim',
     branch = 'regexp', -- Use this branch for the new version
     cmd = 'VenvSelect',

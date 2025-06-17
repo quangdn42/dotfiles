@@ -1,3 +1,16 @@
+local formatters_by_ft = {
+  go = { 'goimports', 'gofumpt' },
+  hurl = { 'hurlfmt' },
+  just = { 'just' },
+  lua = { 'stylua' },
+  mysql = { 'sqlfluff' },
+  plsql = { 'sqlfluff' },
+  python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
+  sh = { 'shfmt' },
+  sql = { 'sqlfluff' },
+  zig = { 'zigfmt' },
+}
+
 return {
   { -- Autoformat
     'stevearc/conform.nvim',
@@ -70,10 +83,7 @@ return {
           lsp_format = lsp_format_opt,
         }
       end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        sh = { 'shfmt' },
-      },
+      formatters_by_ft = formatters_by_ft,
       formatters = {
         injected = { options = { ignore_errors = true } },
       },
