@@ -1,5 +1,3 @@
-selectedProfileId = 'EB33C7BE-94E3-4A01-BA31-2331F43F6C30'
-
 [[profiles]]
 id = 'EB33C7BE-94E3-4A01-BA31-2331F43F6C30'
 name = 'Default'
@@ -49,19 +47,24 @@ shortcut = 'opt+t'
 symbolIconName = 'apple.terminal'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.github.wez.wezterm'
-iconPath = '/Applications/WezTerm.app/Contents/Resources/terminal.icns'
-name = 'WezTerm'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'dev.zed.Zed'
 iconPath = '/Applications/Zed.app/Contents/Resources/Zed.icns'
 name = 'Zed'
 
 [[profiles.workspaces.apps]]
+bundleIdentifier = 'com.github.wez.wezterm'
+iconPath = '/Applications/WezTerm.app/Contents/Resources/terminal.icns'
+name = 'WezTerm'
+
+[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.mitchellh.ghostty'
 iconPath = '/Applications/Ghostty.app/Contents/Resources/AppIcon.icns'
 name = 'Ghostty'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.jetbrains.intellij.ce'
+iconPath = '/Applications/IntelliJ IDEA CE.app/Contents/Resources/idea.icns'
+name = 'IntelliJ IDEA'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+s'
@@ -75,6 +78,11 @@ symbolIconName = 'network'
 bundleIdentifier = 'company.thebrowser.Browser'
 iconPath = '/Applications/Arc.app/Contents/Resources/AppIcon.icns'
 name = 'Arc'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'app.zen-browser.zen'
+iconPath = '/Applications/Zen.app/Contents/Resources/firefox.icns'
+name = 'Zen'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+c'
@@ -127,3 +135,7 @@ bundleIdentifier = 'com.apple.Notes'
 iconPath = '/System/Applications/Notes.app/Contents/Resources/AppIcon.icns'
 name = 'Notes'
 
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'us.zoom.xos'
+iconPath = '/Applications/zoom.us.app/Contents/Resources/ZPLogo.icns'
+name = 'zoom.us'
