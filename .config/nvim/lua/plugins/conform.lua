@@ -34,36 +34,13 @@ return {
         desc = 'Format Injected Langs',
       },
     },
-    init = function()
-      vim.api.nvim_create_user_command('FormatToggle', function(args)
-        if args.bang then
-          -- FormatDisable! will disable formatting just for this buffer
-          if vim.b.disable_autoformat == nil or not vim.b.disable_autoformat then
-            vim.b.disable_autoformat = true
-            Snacks.notify 'Disable Autoformat Buffer'
-          else
-            vim.b.disable_autoformat = false
-            Snacks.notify 'Enable Autoformat Buffer'
-          end
-        else
-          if vim.g.disable_autoformat == nil or not vim.g.disable_autoformat then
-            vim.g.disable_autoformat = true
-            Snacks.notify 'Disable Autoformat Global'
-          else
-            vim.g.disable_autoformat = false
-            Snacks.notify 'Enable Autoformat Global'
-          end
-        end
-      end, {
-        desc = 'Toggle autoformat-on-save',
-        bang = true,
-      })
-      vim.keymap.set('n', '<leader>uf', '<cmd>FormatToggle<cr>', { desc = 'Toggle Autoformat Global' })
-      vim.keymap.set('n', '<leader>uF', '<cmd>FormatToggle!<cr>', { desc = 'Toggle Autoformat Buffer' })
-    end,
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
+        -- disable autoformat
+        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+          return
+        end
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
@@ -73,10 +50,6 @@ return {
           lsp_format_opt = 'never'
         else
           lsp_format_opt = 'fallback'
-        end
-        -- disable autoformat
-        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
-          return
         end
         return {
           timeout_ms = 500,
