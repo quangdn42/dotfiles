@@ -5,20 +5,17 @@ mouse-hide-while-typing = true
 macos-option-as-alt = true
 
 font-size = 16
-# font-family = "Cascadia Code"
+font-family = "IBM Plex Mono"
 # adjust-cell-height = 13%
 # adjust-cursor-height = 13%
 theme = tokyonight
 macos-titlebar-style = tabs
 # background-opacity = 0.95
 adjust-cursor-thickness = 100%
-# bold-is-bright = true
+window-new-tab-position = end
+window-save-state = always
 
 # keybinds
-keybind = ctrl+h=goto_split:left
-keybind = ctrl+j=goto_split:down
-keybind = ctrl+k=goto_split:up
-keybind = ctrl+l=goto_split:right
 keybind = cmd+enter=new_split:down
 keybind = cmd+shift+enter=new_split:right
 keybind = ctrl+left=resize_split:left,10
