@@ -8,7 +8,20 @@
       "ctrl-h": "workspace::ActivatePaneLeft",
       "ctrl-l": "workspace::ActivatePaneRight",
       "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-j": "workspace::ActivatePaneDown"
+      "ctrl-j": "workspace::ActivatePaneDown",
+
+      // Subword
+      "w": "vim::NextSubwordStart",
+      "b": "vim::PreviousSubwordStart",
+      "e": "vim::NextSubwordEnd",
+      "g e": "vim::PreviousSubwordEnd",
+
+      // Vimsneak
+      "enter": "vim::PushSneak",
+      "shift-enter": "vim::PushSneakBackward",
+
+      // Substitute
+      "g p": "vim::PushReplaceWithRegister"
     }
   },
   // Normal & Visual
@@ -27,17 +40,7 @@
       "space c a": "editor::ToggleCodeActions",
       "g .": null,
       "space c r": "editor::Rename",
-      "g r": "editor::FindAllReferences",
-
-      // Subword
-      "w": "vim::NextSubwordStart",
-      "b": "vim::PreviousSubwordStart",
-      "e": "vim::NextSubwordEnd",
-      "g e": "vim::PreviousSubwordEnd",
-
-      // Vimsneak
-      "backspace": "vim::PushSneak",
-      "shift-backspace": "vim::PushSneakBackward"
+      "g r": "editor::FindAllReferences"
     }
   },
   // Normal
@@ -50,7 +53,6 @@
       "space c f": "editor::Format",
 
       // Navigation
-      "space a": "assistant::ToggleFocus",
       "space b": "tab_switcher::Toggle",
       "space e": "pane::RevealInProjectPanel",
       "space f": "file_finder::Toggle",
@@ -171,7 +173,6 @@
     "bindings": {
       // Put key bindings here (in addition to the context above) if you want them to
       // work when no editor exists.
-      "space a": "assistant::ToggleFocus",
       "space b": "tab_switcher::Toggle",
       "space e": "pane::RevealInProjectPanel",
       "space f": "file_finder::Toggle"

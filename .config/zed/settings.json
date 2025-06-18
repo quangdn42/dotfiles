@@ -18,7 +18,7 @@
     "default_profile": "ask",
     "default_model": {
       "provider": "zed.dev",
-      "model": "claude-3-5-sonnet-latest"
+      "model": "claude-sonnet-4"
     },
     "version": "2"
   },
@@ -53,12 +53,30 @@
       "delay_ms": 3000
     }
   },
+  // Editor
   "tab_bar": {
     "show": false
   },
-  // Inlay Hints
+  "always_treat_brackets_as_autoclosed": true,
+  // LSP
+  "diagnostics": {
+    "inline": {
+      "enabled": true,
+      "update_debounce_ms": 150,
+      "padding": 4,
+      "min_column": 0
+    }
+  },
+  // Languages
   "inlay_hints": {
-    "enabled": true
+    "enabled": false,
+    "toggle_on_modifiers_press": {
+      "control": false,
+      "shift": false,
+      "alt": true,
+      "platform": false,
+      "function": false
+    }
   },
   "languages": {
     "Templ": {
