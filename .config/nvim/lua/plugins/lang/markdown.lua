@@ -1,14 +1,5 @@
 return {
 
-  {
-    'neovim/nvim-lspconfig',
-    opts = {
-      servers = {
-        marksman = {},
-      },
-    },
-  },
-
   -- Markdown preview
   {
     'iamcco/markdown-preview.nvim',
