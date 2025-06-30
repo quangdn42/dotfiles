@@ -10,15 +10,9 @@
       "ctrl-k": "workspace::ActivatePaneUp",
       "ctrl-j": "workspace::ActivatePaneDown",
 
-      // Subword
-      "w": "vim::NextSubwordStart",
-      "b": "vim::PreviousSubwordStart",
-      "e": "vim::NextSubwordEnd",
-      "g e": "vim::PreviousSubwordEnd",
-
       // Vimsneak
-      "enter": "vim::PushSneak",
-      "shift-enter": "vim::PushSneakBackward",
+      "backspace": "vim::PushSneak",
+      "shift-backspace": "vim::PushSneakBackward",
 
       // Substitute
       "g p": "vim::PushReplaceWithRegister"
@@ -35,6 +29,14 @@
       "<": "editor::Outdent",
       "g h": "vim::FirstNonWhitespace",
       "g l": "vim::EndOfLine",
+      "alt-o": "editor::SelectLargerSyntaxNode",
+      "alt-i": "editor::SelectSmallerSyntaxNode",
+
+      // Subword
+      "w": ["vim::NextSubwordStart", { "ignore_punctuation": false }],
+      "b": "vim::PreviousSubwordStart",
+      "e": "vim::NextSubwordEnd",
+      "g e": "vim::PreviousSubwordEnd",
 
       // LSP Actions
       "space c a": "editor::ToggleCodeActions",
@@ -62,6 +64,7 @@
       "L": "pane::ActivateNextItem",
       "space \\": "pane::SplitRight",
       "space -": "pane::SplitDown",
+      "space `": "pane::AlternateFile",
 
       // Git operations
       "space g D": "git::Diff",
@@ -70,11 +73,13 @@
       "space g U": "git::UnstageFile",
       "space g a": "git::Add",
       "space g d": "editor::ToggleSelectedDiffHunks",
-      "space g g": "git_panel::ToggleFocus",
       "space g r": "git::Restore",
       "space g s": "git::StageAndNext",
       "space g t": "git::ToggleStaged",
-      "space g u": "git::UnstageAndNext"
+      "space g u": "git::UnstageAndNext",
+
+      // Debug operations
+      "space d l": "debugger::Rerun"
     }
   },
   // Visual
@@ -98,6 +103,14 @@
     "context": "vim_mode == operator",
     "bindings": {
       "v": "vim::Subword"
+    }
+  },
+  {
+    "context": "vim_operator == a || vim_operator == i || vim_operator == cs",
+    "bindings": {
+      "b": "vim::MiniBrackets",
+      // "g": "vim::EntireFile",
+      "shift-v": ["vim::Subword", { "ignore_punctuation": true }]
     }
   },
   // Project Panel
@@ -156,7 +169,9 @@
       "cmd-x": "terminal::ToggleViMode",
       "cmd-k": ["terminal::SendKeystroke", "ctrl-l"],
       "cmd-t": "workspace::NewTerminal",
-      "cmd-1": "workspace::ToggleBottomDock"
+      "cmd-1": "workspace::ToggleBottomDock",
+      "cmd-2": "workspace::CloseActiveDock",
+      "ctrl-`": "workspace::ToggleBottomDock"
     }
   },
   // Editor wide
@@ -165,7 +180,15 @@
     "bindings": {
       "cmd-o": "projects::OpenRecent",
       "alt-cmd-o": "workspace::Open",
-      "cmd-2": "terminal_panel::ToggleFocus"
+      "cmd-1": "workspace::CloseAllDocks",
+      "cmd-2": "terminal_panel::ToggleFocus",
+
+      "f5": "debugger::Start",
+      "shift-f5": "debugger::Stop",
+      "ctrl-f5": "debugger::Restart",
+      "f3": "debugger::StepOver",
+      "f2": "debugger::StepInto",
+      "f1": "debugger::StepOut"
     }
   },
   {
@@ -176,6 +199,13 @@
       "space b": "tab_switcher::Toggle",
       "space e": "pane::RevealInProjectPanel",
       "space f": "file_finder::Toggle"
+    }
+  },
+  {
+    "context": "Workspace && debugger_running",
+    "use_key_equivalents": true,
+    "bindings": {
+      "space d e": "debugger::EvaluateSelectedText"
     }
   },
 
