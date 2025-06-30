@@ -16,7 +16,7 @@ return {
         { '<leader>g', group = 'git', mode = { 'n', 'v' } },
         { '<leader>q', group = 'quit/session' },
         { '<leader>s', group = 'search' },
-        { '<leader>t', group = 'toggle' },
+        { '<leader>t', group = 'test' },
         { '<leader>u', group = 'ui' },
         { '<leader>x', group = 'swap' },
         { '<leader>w', group = 'windows', proxy = '<c-w>' }, -- proxy to window mappings
