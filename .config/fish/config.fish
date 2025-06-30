@@ -82,6 +82,9 @@ if status is-interactive
 	abbr --add wwt wezterm cli rename-workspace
 	abbr --add gdoc 'stdsym | fzf --preview "go doc \$(echo {})" | xargs go doc'
 	abbr --add runkanata 'sudo kanata -d --cfg ~/dotfiles/.config/kanata/sym-only.kbd --quiet'
+	abbr --add j jj
+	abbr --add jl jj log
+	abbr --add jsq jj squash
 	alias v nvim
 	alias n 'NVIM_APPNAME="lazyvim" nvim'
 	alias fn 'NVIM_APPNAME="firenvim" nvim'

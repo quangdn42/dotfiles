@@ -1,0 +1,10 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[user]
+name = "Quang Dang"
+email = "quangdn42@gmail.com"
+
+[ui]
+pager = "delta -s"
+diff-formatter = ":git"
+
