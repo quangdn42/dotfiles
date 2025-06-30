@@ -4,6 +4,19 @@ return {
     'folke/snacks.nvim',
     opts = {
       picker = {
+        sources = {
+          -- per picker config or new picker here, e.g.
+          -- buffers = { layout = { preset = 'vscode', preview = 'main' } },
+          -- files = { hidden = true },
+          -- buffer_symbols = {
+          --   multi = { 'treesitter', 'lsp_symbols' },
+          --   transform = 'unique_file',
+          -- },
+          projects = {
+            dev = { '~/Workspaces/', '~/projects' },
+            patterns = { 'justfile', '.jj' },
+          },
+        },
         layout = {
           preset = function()
             return vim.o.columns >= 120 and 'default' or 'vertical'
@@ -81,11 +94,12 @@ return {
     },
     -- stylua: ignore
     keys = {
-			{ '<leader>b', function() Snacks.picker.buffers { filter = { cwd = true } } end, desc = 'Buffers' },
+      { '<leader>b', function() Snacks.picker.buffers { filter = { cwd = true }, layout = { preset = 'vscode', preview = 'main' } } end, desc = 'Buffers' },
       { '<leader>B', function() Snacks.picker.buffers { hidden = true, nofile = true } end, desc = 'Buffers (All)' },
       { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep (Root Dir)" },
       { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart" },
       { "<leader>f", function() Snacks.picker.files() end, desc = "Find Files (Root)" },
+      { "<leader>F", function() Snacks.picker.files { hidden = true, ignored = true } end, desc = "Find Files (All)" },
       -- git
       { "<leader>gc", function() Snacks.picker.git_log() end, desc = "Git Log" },
       { "<leader>gh", function() Snacks.picker.git_diff() end, desc = "Git Diff (hunks)" },

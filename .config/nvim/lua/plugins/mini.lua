@@ -17,15 +17,15 @@ return {
       end
 
       return {
-        n_lines = 500,
+        n_lines = 100,
         custom_textobjects = {
           A = ai.gen_spec.treesitter { a = '@parameter.outer', i = '@parameter.inner' }, -- TS argument
           o = ai.gen_spec.treesitter { -- code block
             a = { '@block.outer', '@conditional.outer', '@loop.outer' },
             i = { '@block.inner', '@conditional.inner', '@loop.inner' },
           },
-          k = ai.gen_spec.treesitter { a = '@assignment.lhs', i = '@assignment.lhs' }, -- assignment key
-          v = ai.gen_spec.treesitter { a = '@assignment.rhs', i = '@assignment.rhs' }, -- assignment value
+          -- k = ai.gen_spec.treesitter { a = '@assignment.lhs', i = '@assignment.lhs' }, -- assignment key
+          -- v = ai.gen_spec.treesitter { a = '@assignment.rhs', i = '@assignment.rhs' }, -- assignment value
           f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
           -- c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
           T = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags
@@ -34,7 +34,7 @@ return {
           --   '^().*()$',
           -- },
           y = ai_line, -- line
-          g = function()
+          e = function()
             local from = { line = 1, col = 1 }
             local to = {
               line = vim.fn.line '$',
@@ -68,12 +68,20 @@ return {
   -- indentscope
   {
     'echasnovski/mini.indentscope',
-    enabled = false,
     version = '*',
     event = { 'BufReadPre', 'BufNewFile' },
     opts = {
       symbol = '│',
       options = { try_as_border = true },
+      mappings = {
+        goto_top = '[=',
+        goto_bottom = ']=',
+      },
+      draw = {
+        predicate = function()
+          return false
+        end,
+      },
     },
     init = function()
       vim.api.nvim_create_autocmd('FileType', {
@@ -125,8 +133,8 @@ return {
               move = 'j'
             end
             local ns = vim.api.nvim_create_namespace 'border'
-            vim.api.nvim_buf_add_highlight(0, ns, 'Substitute', top - 1, 0, -1)
-            vim.api.nvim_buf_add_highlight(0, ns, 'Substitute', bottom - 1, 0, -1)
+            vim.hl.range(0, ns, 'Substitute', { top - 1, 0 }, { top - 1, -1 })
+            vim.hl.range(0, ns, 'Substitute', { bottom - 1, 0 }, { bottom - 1, -1 })
             vim.defer_fn(function()
               vim.cmd('silent' .. tostring(top .. ',' .. bottom .. '<'))
               vim.cmd(tostring(bottom .. 'delete'))

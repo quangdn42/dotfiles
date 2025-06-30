@@ -1,18 +1,7 @@
 return {
-  on_attach = function(client)
-    -- workaround for gopls not supporting semanticTokensProvider
-    -- https://github.com/golang/go/issues/54531#issuecomment-1464982242
-    if not client.server_capabilities.semanticTokensProvider then
-      local semantic = client.config.capabilities.textDocument.semanticTokens
-      client.server_capabilities.semanticTokensProvider = {
-        full = true,
-        legend = {
-          tokenTypes = semantic.tokenTypes,
-          tokenModifiers = semantic.tokenModifiers,
-        },
-        range = true,
-      }
-    end
+  on_attach = function()
+    -- enable inlay hints
+    vim.lsp.inlay_hint.enable()
   end,
   settings = {
     gopls = {
@@ -26,6 +15,10 @@ return {
         test = true,
       },
       semanticTokens = true,
+      -- semanticTokensTypes = { string = false, number = false }, -- this doesn't work yet for some reason
+      -- so use the noSemantic version instead
+      noSemanticString = true,
+      noSemanticNumber = true,
       -- Inlay hints
       hints = {
         -- assignVariableTypes = true,
@@ -45,7 +38,7 @@ return {
         useany = true,
       },
       -- Completion
-      usePlaceholders = true,
+      usePlaceholders = false,
     },
   },
 }

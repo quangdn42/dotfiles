@@ -21,6 +21,14 @@ vim.lsp.enable {
   'zls',
 }
 
+local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
+---@diagnostic disable-next-line: duplicate-set-field
+function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+  opts = opts or {}
+  opts.border = opts.border or 'rounded'
+  return orig_util_open_floating_preview(contents, syntax, opts, ...)
+end
+
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('my-lsp-attach', { clear = true }),
   callback = function(event)
@@ -33,7 +41,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
     map('gd', function() Snacks.picker.lsp_definitions() end, 'Goto Definition') --  To jump back, press <C-t>.
     map('gI', function() Snacks.picker.lsp_implementations() end, 'Goto Implementation')
     map('gy', function() Snacks.picker.lsp_type_definitions() end, 'Goto Type Definition')
-    map('<leader>ss', function() Snacks.picker.lsp_symbols() end, 'Document Symbols')
     map('<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, 'Workspace Symbols')
     vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { desc = 'Goto References', nowait = true })
     -- stylua: ignore end
@@ -68,9 +75,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     map('<leader>cl', ':LspInfo<cr>', 'Lsp Info')
 
     -- Enable Inlay hints
-    local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-      vim.lsp.inlay_hint.enable()
-    end
+    -- local client = vim.lsp.get_client_by_id(event.data.client_id)
+    -- if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+    --   vim.lsp.inlay_hint.enable()
+    -- end
   end,
 })

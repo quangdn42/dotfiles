@@ -25,10 +25,16 @@ return {
   opts = function()
     local augend = require 'dial.augend'
 
-    local logical_alias = augend.constant.new {
+    local logical_symbols = augend.constant.new {
       elements = { '&&', '||' },
       word = false,
       cyclic = true,
+    }
+
+    local logical_words = augend.constant.new {
+      elements = { 'and', 'or' },
+      word = true, -- if false, "sand" is incremented into "sor", "doctor" into "doctand", etc.
+      cyclic = true, -- "or" is incremented into "and".
     }
 
     local ordinal_numbers = augend.constant.new {
@@ -121,7 +127,7 @@ return {
           months,
           capitalized_boolean,
           augend.constant.alias.bool, -- boolean value (true <-> false)
-          logical_alias,
+          logical_symbols,
         },
         vue = {
           augend.constant.new { elements = { 'let', 'const' } },
@@ -146,11 +152,10 @@ return {
           augend.semver.alias.semver, -- versioning (v1.1.2)
         },
         lua = {
-          augend.constant.new {
-            elements = { 'and', 'or' },
-            word = true, -- if false, "sand" is incremented into "sor", "doctor" into "doctand", etc.
-            cyclic = true, -- "or" is incremented into "and".
-          },
+          logical_words,
+        },
+        zig = {
+          logical_words,
         },
         python = {
           augend.constant.new {

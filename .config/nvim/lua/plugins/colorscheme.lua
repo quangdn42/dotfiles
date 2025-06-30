@@ -11,9 +11,9 @@ return {
     opts = {
       transparent = false,
       on_highlights = function(hl, colors)
-        hl['SnacksDashboardHeader'] = {
-          fg = colors.blue2,
-        }
+        hl['SnacksDashboardHeader'] = { fg = colors.blue2 }
+        -- Link the treesitter capture for Python docstrings to the Comment group.
+        hl['@string.documentation.python'] = { link = 'Comment' }
       end,
     },
   },
@@ -37,9 +37,15 @@ return {
       },
       overrides = function(colors)
         local theme = colors.theme
+        local palette = colors.palette
         return {
           -- Flash
-          FlashLabel = { bg = colors.palette.samuraiRed },
+          FlashLabel = { fg = palette.lotusCyan, bg = palette.samuraiRed, bold = true },
+          FlashMatch = { fg = palette.lotusCyan, bg = palette.lotusBlue4 },
+          FlashCurrent = { fg = palette.sumiInk2, bg = palette.surimiOrange },
+          -- Eyeliner
+          EyelinerPrimary = { fg = palette.surimiOrange },
+          EyelinerSecondary = { fg = palette.springBlue },
           -- Dark completion menu
           Pmenu = { fg = theme.ui.shade0, bg = theme.ui.bg_p1, blend = vim.o.pumblend }, -- add `blend = vim.o.pumblend` to enable transparency
           PmenuSel = { fg = 'NONE', bg = theme.ui.bg_p2 },
