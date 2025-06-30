@@ -62,13 +62,14 @@
 
 
   ;; Navigation Layer (hold Space)
-  spc (tap-hold 200 200 spc (layer-while-held nav))
+  spc (tap-hold 200 200 spc (layer-while-held symbols))
+  tab (tap-hold 200 200 tab (layer-while-held symbols))
 )
 
 
 (deflayer base
   grv 1 2 3 4 5 6 7 8 9 0 - = bspc
-  tab q @w e r t y u i @o p [ ] \
+  @tab q w e r t y u i o p [ ] \
   @esc a s d f g h j k l ; ' ret
   lsft z x c v b n m , . / rsft
   lctl lalt lmet    @spc   rmet ralt
@@ -94,7 +95,7 @@
   f lmet
 )
 
-;; Symbol Layer (hold W or O)
+;; Symbol Layer
 (deflayer symbols
 ;;   / < > - | ' @ [ ] \
 ;;   ! : * = & # ( ) " %

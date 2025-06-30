@@ -81,6 +81,7 @@ if status is-interactive
 	abbr --add wtt wezterm cli set-tab-title
 	abbr --add wwt wezterm cli rename-workspace
 	abbr --add gdoc 'stdsym | fzf --preview "go doc \$(echo {})" | xargs go doc'
+	abbr --add runkanata 'sudo kanata -d --cfg ~/dotfiles/.config/kanata/sym-only.kbd --quiet'
 	alias v nvim
 	alias n 'NVIM_APPNAME="lazyvim" nvim'
 	alias fn 'NVIM_APPNAME="firenvim" nvim'
@@ -91,6 +92,9 @@ if status is-interactive
 
 	# man syntax highlighting
 	set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
+
+	# EDITOR
+	set -Ux EDITOR vim
 
 	# PATH
 	set -gx PATH $PATH ~/.local/share/nvim/mason/bin
