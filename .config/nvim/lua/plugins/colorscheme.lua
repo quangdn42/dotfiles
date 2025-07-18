@@ -1,7 +1,7 @@
 return {
   {
     'folke/tokyonight.nvim',
-    enabled = true,
+    enabled = false,
     -- version = '4.11.0',
     commit = 'c8ea87c',
     priority = 1000, -- Make sure to load this before all the other start plugins.
@@ -19,7 +19,7 @@ return {
   },
   {
     'rebelot/kanagawa.nvim',
-    enabled = false,
+    enabled = true,
     priority = 1000,
     init = function()
       vim.cmd.colorscheme 'kanagawa'
