@@ -16,10 +16,10 @@ return {
   desc = 'Increment and decrement numbers, dates, and more',
   -- stylua: ignore
   keys = {
-    { "<C-a>", function() return M.dial(true) end, expr = true, desc = "Increment", mode = {"n", "v"} },
-    { "<C-x>", function() return M.dial(false) end, expr = true, desc = "Decrement", mode = {"n", "v"} },
-    { "g<C-a>", function() return M.dial(true, true) end, expr = true, desc = "Increment", mode = {"n", "v"} },
-    { "g<C-x>", function() return M.dial(false, true) end, expr = true, desc = "Decrement", mode = {"n", "v"} },
+    { "<C-a>", function() return M.dial(true) end, expr = true, desc = "Increment", mode = {"n", "x"} },
+    { "<C-x>", function() return M.dial(false) end, expr = true, desc = "Decrement", mode = {"n", "x"} },
+    { "g<C-a>", function() return M.dial(true, true) end, expr = true, desc = "Increment", mode = {"n", "x"} },
+    { "g<C-x>", function() return M.dial(false, true) end, expr = true, desc = "Decrement", mode = {"n", "x"} },
   },
   config = function()
     local augend = require 'dial.augend'
@@ -59,15 +59,6 @@ return {
       cyclic = true,
     }
 
-    local capitalized_boolean = augend.constant.new {
-      elements = {
-        'True',
-        'False',
-      },
-      word = true,
-      cyclic = true,
-    }
-
     local var_const = augend.constant.new { elements = { 'var', 'const' } }
 
     local default = {
@@ -81,6 +72,7 @@ return {
       weekdays,
       months,
       augend.constant.alias.bool, -- boolean value (true <-> false)
+      augend.constant.alias.Bool, -- boolean value (True <-> False)
       logical_symbols,
       logical_words,
     }
