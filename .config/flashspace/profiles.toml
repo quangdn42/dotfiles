@@ -4,7 +4,7 @@ name = 'Default'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+b'
-display = 'DELL U2723QE'
+display = 'Built-in Retina Display'
 id = '4B581926-1CFF-49C3-872C-78B2F5ABEDEB'
 name = 'Base'
 shortcut = 'opt+b'
@@ -19,6 +19,11 @@ name = 'Spotify'
 bundleIdentifier = 'com.apple.systempreferences'
 iconPath = '/System/Applications/System Settings.app/Contents/Resources/PrefApp.icns'
 name = 'System Settings'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.Music'
+iconPath = '/System/Applications/Music.app/Contents/Resources/AppIcon.icns'
+name = 'Music'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+r'
@@ -47,24 +52,33 @@ shortcut = 'opt+t'
 symbolIconName = 'apple.terminal'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'dev.zed.Zed'
-iconPath = '/Applications/Zed.app/Contents/Resources/Zed.icns'
-name = 'Zed'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.github.wez.wezterm'
 iconPath = '/Applications/WezTerm.app/Contents/Resources/terminal.icns'
 name = 'WezTerm'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.mitchellh.ghostty'
-iconPath = '/Applications/Ghostty.app/Contents/Resources/AppIcon.icns'
-name = 'Ghostty'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.jetbrains.intellij.ce'
 iconPath = '/Applications/IntelliJ IDEA CE.app/Contents/Resources/idea.icns'
 name = 'IntelliJ IDEA'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.microsoft.VSCode'
+iconPath = '/Applications/Visual Studio Code.app/Contents/Resources/Code.icns'
+name = 'Code'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'net.java.openjdk.java'
+name = 'Mars'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.mitchellh.ghostty'
+iconPath = '/Applications/Ghostty.app/Contents/Resources/Ghostty.icns'
+name = 'Ghostty'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.microsoft.Word'
+iconPath = '/Applications/Microsoft Word.app/Contents/Resources/Word_macOS.icns'
+name = 'Microsoft Word'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+s'
@@ -83,6 +97,21 @@ name = 'Arc'
 bundleIdentifier = 'app.zen-browser.zen'
 iconPath = '/Applications/Zen.app/Contents/Resources/firefox.icns'
 name = 'Zen'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.google.Chrome'
+iconPath = '/Applications/Google Chrome.app/Contents/Resources/app.icns'
+name = 'Google Chrome'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.Safari'
+iconPath = '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/Resources/AppIcon.icns'
+name = 'Safari'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.microsoft.edgemac'
+iconPath = '/Applications/Microsoft Edge.app/Contents/Resources/app.icns'
+name = 'Microsoft Edge'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+c'
@@ -139,3 +168,16 @@ name = 'Notes'
 bundleIdentifier = 'us.zoom.xos'
 iconPath = '/Applications/zoom.us.app/Contents/Resources/ZPLogo.icns'
 name = 'zoom.us'
+
+[[profiles.workspaces]]
+assignAppShortcut = 'opt+shift+z'
+display = 'DELL U2723QE'
+id = '2C139EE4-E41F-4A5C-A961-63D652968C6B'
+name = 'Zed'
+shortcut = 'opt+z'
+symbolIconName = 'rectangle.and.pencil.and.ellipsis'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'dev.zed.Zed'
+iconPath = '/Applications/Zed.app/Contents/Resources/Zed.icns'
+name = 'Zed'

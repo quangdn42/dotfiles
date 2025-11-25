@@ -74,7 +74,7 @@ ZSH_THEME="robbyrussell"
 plugins=(git zsh-vi-mode)
 
 
-source $ZSH/oh-my-zsh.sh
+# source $ZSH/oh-my-zsh.sh
 
 # User configuration
 

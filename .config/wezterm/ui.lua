@@ -96,7 +96,7 @@ function M.config(config)
 	config.line_height = 1.00
 	config.window_background_opacity = 1
 	config.cursor_thickness = "50%"
-	set_font(config, "ibm_plex")
+	set_font(config, "jb_mono")
 
 	-- [[
 	-- COLORSCHEME

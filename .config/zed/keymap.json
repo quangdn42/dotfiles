@@ -33,10 +33,10 @@
       "alt-i": "editor::SelectSmallerSyntaxNode",
 
       // Subword
-      "w": ["vim::NextSubwordStart", { "ignore_punctuation": false }],
-      "b": "vim::PreviousSubwordStart",
-      "e": "vim::NextSubwordEnd",
-      "g e": "vim::PreviousSubwordEnd",
+      // "w": ["vim::NextSubwordStart", { "ignore_punctuation": false }],
+      // "e": ["vim::NextSubwordEnd", { "ignore_punctuation": false }],
+      // "b": "vim::PreviousSubwordStart",
+      // "g e": "vim::PreviousSubwordEnd",
 
       // LSP Actions
       "space c a": "editor::ToggleCodeActions",
@@ -79,7 +79,11 @@
       "space g u": "git::UnstageAndNext",
 
       // Debug operations
-      "space d l": "debugger::Rerun"
+      "space d l": "debugger::Rerun",
+
+      // treesitter related
+      "alt-o": "vim::SelectLargerSyntaxNode",
+      "alt-i": "vim::SelectSmallerSyntaxNode"
     }
   },
   // Visual
@@ -119,14 +123,13 @@
     "bindings": {
       "a": "project_panel::NewFile",
       "d": "project_panel::Delete",
-      "enter": ["workspace::SendKeystrokes", "o space e"],
+      // "enter": ["workspace::SendKeystrokes", "o space e"],
       "g Y": "workspace::CopyRelativePath",
       "g y": "workspace::CopyPath",
       "p": "project_panel::Paste",
       "q": "workspace::ToggleLeftDock",
       "r": "project_panel::Rename",
       "shift-a": "project_panel::NewDirectory",
-      "space e": "workspace::ToggleLeftDock",
       "x": "project_panel::Cut",
       "y": "project_panel::Copy"
     }
@@ -171,7 +174,9 @@
       "cmd-t": "workspace::NewTerminal",
       "cmd-1": "workspace::ToggleBottomDock",
       "cmd-2": "workspace::CloseActiveDock",
-      "ctrl-`": "workspace::ToggleBottomDock"
+      "ctrl-`": "workspace::ToggleBottomDock",
+      "alt-left": null,
+      "alt-right": null
     }
   },
   // Editor wide
