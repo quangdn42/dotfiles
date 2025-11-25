@@ -29,6 +29,7 @@ if status is-interactive
 	alias n 'NVIM_APPNAME="lazyvim" nvim'
 	alias fn 'NVIM_APPNAME="firenvim" nvim'
 	alias zig0.14 '~/workspaces/zig-aarch64-macos-0.14.1/zig'
+	alias python python3.12
 	abbr --add dotdot --regex '^\.\.+$' --function multicd
 
 	# man syntax highlighting
@@ -38,8 +39,7 @@ if status is-interactive
 	set -Ux EDITOR vim
 
 	# PATH
-	set -gx PATH $PATH ~/.local/share/nvim/mason/bin
-	set -gx PATH $PATH /opt/homebrew/bin
+	set -gx PATH $PATH ~/.local/share/nvim/mason/bin /opt/homebrew/bin ~/.zvm/bin
 	set -gx XDG_CONFIG_HOME $HOME/.config # for lazygit to use correct config folder
 
 	# fzf --fish | FZF_ALT_C_COMMAND= source
