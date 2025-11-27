@@ -2,6 +2,7 @@ return {
   -- Better text-objects
   {
     'echasnovski/mini.ai',
+    version = '*',
     event = 'VeryLazy',
     opts = function()
       local ai = require 'mini.ai'
@@ -52,6 +53,7 @@ return {
   -- NOTE: consider https://github.com/catgoose/nvim-colorizer.lua when working with FE
   {
     'echasnovski/mini.hipatterns',
+    version = '*',
     event = 'BufReadPre',
     config = function()
       local hipatterns = require 'mini.hipatterns'
@@ -157,6 +159,7 @@ return {
   -- move
   {
     'echasnovski/mini.move',
+    version = '*',
     event = 'VeryLazy',
     opts = {
       mappings = {
@@ -178,6 +181,7 @@ return {
   -- surround
   {
     'echasnovski/mini.surround',
+    version = '*',
     event = 'VeryLazy',
     config = function()
       require('mini.surround').setup {
