@@ -11,37 +11,43 @@ shortcut = 'opt+b'
 symbolIconName = 'homekit'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.spotify.client'
-iconPath = '/Applications/Spotify.app/Contents/Resources/Icon.icns'
-name = 'Spotify'
-
-[[profiles.workspaces.apps]]
-bundleIdentifier = 'com.apple.systempreferences'
-iconPath = '/System/Applications/System Settings.app/Contents/Resources/PrefApp.icns'
-name = 'System Settings'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.apple.Music'
 iconPath = '/System/Applications/Music.app/Contents/Resources/AppIcon.icns'
 name = 'Music'
 
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.systempreferences'
+iconPath = '/System/Applications/System Settings.app/Contents/Resources/SystemSettings.icns'
+name = 'System Settings'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.spotify.client'
+iconPath = '/Applications/Spotify.app/Contents/Resources/AppIcon.icns'
+name = 'Spotify'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.finder'
+iconPath = '/System/Library/CoreServices/Finder.app/Contents/Resources/Finder.icns'
+name = 'Finder'
+
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+r'
-display = 'DELL U2723QE'
-id = '55D53F27-C604-4488-8E9E-ADAE976957A6'
-name = 'Read'
+display = 'Built-in Retina Display'
+id = '69B177AC-8B20-4998-BAEF-4996BD2D5D9A'
+name = 'Right Sidebar'
+openAppsOnActivation = false
 shortcut = 'opt+r'
-symbolIconName = 'book.pages'
+symbolIconName = 'sidebar.right'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.yellowmonkeystudio.gcal'
-iconPath = '/Applications/GCal for Google Calendar.app/Contents/Resources/AppIcon.icns'
-name = 'GCal for Google Calendar'
+bundleIdentifier = 'com.apple.Notes'
+iconPath = '/System/Applications/Notes.app/Contents/Resources/AppIcon.icns'
+name = 'Notes'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.apple.Preview'
-iconPath = '/System/Applications/Preview.app/Contents/Resources/AppIcon.icns'
-name = 'Preview'
+bundleIdentifier = 'us.zoom.xos'
+iconPath = '/Applications/zoom.us.app/Contents/Resources/ZPLogo.icns'
+name = 'zoom.us'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+t'
@@ -57,11 +63,6 @@ iconPath = '/Applications/WezTerm.app/Contents/Resources/terminal.icns'
 name = 'WezTerm'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.jetbrains.intellij.ce'
-iconPath = '/Applications/IntelliJ IDEA CE.app/Contents/Resources/idea.icns'
-name = 'IntelliJ IDEA'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.microsoft.VSCode'
 iconPath = '/Applications/Visual Studio Code.app/Contents/Resources/Code.icns'
 name = 'Code'
@@ -71,14 +72,14 @@ bundleIdentifier = 'net.java.openjdk.java'
 name = 'Mars'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.mitchellh.ghostty'
-iconPath = '/Applications/Ghostty.app/Contents/Resources/Ghostty.icns'
-name = 'Ghostty'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.microsoft.Word'
 iconPath = '/Applications/Microsoft Word.app/Contents/Resources/Word_macOS.icns'
 name = 'Microsoft Word'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.mitchellh.ghostty'
+iconPath = '/Applications/Ghostty.app/Contents/Resources/Ghostty.icns'
+name = 'Ghostty'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+s'
@@ -87,16 +88,6 @@ id = '3B9F5074-A9D9-47C4-97E2-3998321CEC95'
 name = 'Browser'
 shortcut = 'opt+s'
 symbolIconName = 'network'
-
-[[profiles.workspaces.apps]]
-bundleIdentifier = 'company.thebrowser.Browser'
-iconPath = '/Applications/Arc.app/Contents/Resources/AppIcon.icns'
-name = 'Arc'
-
-[[profiles.workspaces.apps]]
-bundleIdentifier = 'app.zen-browser.zen'
-iconPath = '/Applications/Zen.app/Contents/Resources/firefox.icns'
-name = 'Zen'
 
 [[profiles.workspaces.apps]]
 bundleIdentifier = 'com.google.Chrome'
@@ -113,18 +104,24 @@ bundleIdentifier = 'com.microsoft.edgemac'
 iconPath = '/Applications/Microsoft Edge.app/Contents/Resources/app.icns'
 name = 'Microsoft Edge'
 
-[[profiles.workspaces]]
-assignAppShortcut = 'opt+shift+c'
-display = 'DELL U2723QE'
-id = '2E8672DD-9D93-4BEF-8358-3E8A24C826F2'
-name = 'Chat'
-shortcut = 'opt+c'
-symbolIconName = 'message'
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'org.mozilla.firefox'
+iconPath = '/Applications/Firefox.app/Contents/Resources/firefox.icns'
+name = 'Firefox'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'net.whatsapp.WhatsApp'
-iconPath = '/Applications/WhatsApp.app/Contents/Resources/AppIconCatalystRelease.icns'
-name = "\u200EWhatsApp"
+bundleIdentifier = 'company.thebrowser.Browser'
+iconPath = '/Applications/Arc.app/Contents/Resources/AppIcon.icns'
+name = 'Arc'
+
+[[profiles.workspaces]]
+assignAppShortcut = 'opt+shift+n'
+display = 'DELL U2723QE'
+id = '2E8672DD-9D93-4BEF-8358-3E8A24C826F2'
+name = 'Notifications'
+openAppsOnActivation = false
+shortcut = 'opt+n'
+symbolIconName = 'message'
 
 [[profiles.workspaces.apps]]
 bundleIdentifier = 'com.apple.MobileSMS'
@@ -142,32 +139,9 @@ iconPath = '/Applications/Zalo.app/Contents/Resources/icon.icns'
 name = 'Zalo'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.facebook.archon.developerID'
-iconPath = '/Applications/Messenger.app/Contents/Resources/messenger.icns'
-name = 'Messenger'
-
-[[profiles.workspaces]]
-assignAppShortcut = 'opt+shift+n'
-display = 'DELL U2723QE'
-id = '69B177AC-8B20-4998-BAEF-4996BD2D5D9A'
-name = 'Notes'
-shortcut = 'opt+n'
-symbolIconName = 'note.text'
-
-[[profiles.workspaces.apps]]
-bundleIdentifier = 'md.obsidian'
-iconPath = '/Applications/Obsidian.app/Contents/Resources/icon.icns'
-name = 'Obsidian'
-
-[[profiles.workspaces.apps]]
-bundleIdentifier = 'com.apple.Notes'
-iconPath = '/System/Applications/Notes.app/Contents/Resources/AppIcon.icns'
-name = 'Notes'
-
-[[profiles.workspaces.apps]]
-bundleIdentifier = 'us.zoom.xos'
-iconPath = '/Applications/zoom.us.app/Contents/Resources/ZPLogo.icns'
-name = 'zoom.us'
+bundleIdentifier = 'net.whatsapp.WhatsApp'
+iconPath = '/Applications/WhatsApp.app/Contents/Resources/AppIconCatalystRelease.icns'
+name = "\u200EWhatsApp"
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+z'

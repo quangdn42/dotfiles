@@ -4,7 +4,7 @@ centerCursorOnFocusChange = false
 centerCursorOnWorkspaceChange = true
 changeWorkspaceOnAppAssign = true
 checkForUpdatesAutomatically = false
-displayMode = 'dynamic'
+displayMode = 'static'
 enableFocusManagement = true
 enableIntegrations = false
 enablePictureInPictureSupport = true
@@ -57,3 +57,18 @@ workspaceTransitionDuration = 0.29999999999999999
 bundleIdentifier = 'us.zoom.xos'
 iconPath = '/Applications/zoom.us.app/Contents/Resources/ZPLogo.icns'
 name = 'zoom.us'
+
+[[floatingApps]]
+bundleIdentifier = 'com.microsoft.Word'
+iconPath = '/Applications/Microsoft Word.app/Contents/Resources/Word_macOS.icns'
+name = 'Microsoft Word'
+
+[[floatingApps]]
+bundleIdentifier = 'com.apple.systempreferences'
+iconPath = '/System/Applications/System Settings.app/Contents/Resources/SystemSettings.icns'
+name = 'System Settings'
+
+[[floatingApps]]
+bundleIdentifier = 'com.apple.finder'
+iconPath = '/System/Library/CoreServices/Finder.app/Contents/Resources/Finder.icns'
+name = 'Finder'
