@@ -13,8 +13,9 @@ vim.diagnostic.config {
 }
 
 vim.lsp.enable {
-  'lua_ls',
+  'clangd',
   'gopls',
+  'lua_ls',
   'marksman',
   'pyright',
   'ruff',

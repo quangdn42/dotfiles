@@ -42,7 +42,8 @@
       "space c a": "editor::ToggleCodeActions",
       "g .": null,
       "space c r": "editor::Rename",
-      "g r": "editor::FindAllReferences"
+      "g r": "editor::FindAllReferences",
+      "space c h": "editor::SwitchSourceHeader"
     }
   },
   // Normal
