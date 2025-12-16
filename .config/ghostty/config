@@ -9,7 +9,7 @@ font-family = "IBM Plex Mono"
 # for IBM Plex: 2%
 # adjust-cell-height = 2%
 # adjust-cursor-height = 13%
-theme = Kanagawa Wave
+theme = tokyonight
 macos-titlebar-style = tabs
 # background-opacity = 0.95
 unfocused-split-opacity = 1

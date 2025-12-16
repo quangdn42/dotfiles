@@ -9,7 +9,7 @@ if status is-interactive
 	set -g fish_key_bindings fish_vi_key_bindings
 	set -g fish_greeting # disable fish greeting
 
-	source $HOME/.config/fish/themes/kanagawa.fish
+	source $HOME/.config/fish/themes/tokyonight.fish
 
 	# abbr & alias
 	abbr --add ls lsd
