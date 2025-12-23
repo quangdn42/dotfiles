@@ -18,23 +18,23 @@ map({ 'n', 'x' }, 'go', 'gx', { desc = 'Open filepath or URI under cursor with s
 -- map('n', '<C-E>', function()
 --   require('neoscroll').scroll(5, { move_cursor = false, duration = 250 })
 -- end, { desc = 'which_key_ignore' })
-map('n', '<C-Y>', '5<C-Y>', { desc = 'which_key_ignore' })
-map('n', '<C-E>', '5<C-E>', { desc = 'which_key_ignore' })
+map('n', '<c-y>', '5<c-y>', { desc = 'which_key_ignore' })
+map('n', '<c-e>', '5<c-e>', { desc = 'which_key_ignore' })
 
 -- Buffers
-map('n', '<leader>[', '<C-^>', { desc = 'which_key_ignore' })
-map('n', '<leader>`', '<C-^>', { desc = 'which_key_ignore' })
+map('n', '<leader>[', '<c-^>', { desc = 'which_key_ignore' })
+map('n', '<leader>`', '<c-^>', { desc = 'which_key_ignore' })
 
 -- IDE like keymaps
-map({ 'n', 'x' }, '<D-/>', '<cmd>norm gcc<cr>', { desc = 'Toggle Commenting' })
-map('n', '<D-s>', '<cmd>w<cr>', { desc = 'Write File' }) -- for some reason 's' works but 'S' won't??
+map({ 'n', 'x' }, '<d-/>', '<cmd>norm gcc<cr>', { desc = 'Toggle Commenting' })
+map('n', '<d-s>', '<cmd>w<cr>', { desc = 'Write File' }) -- for some reason 's' works but 'S' won't??
 
 -- Tabs
 map('n', ']<tab>', '<cmd>tabnext<cr>', { desc = 'Next tab' })
 map('n', '[<tab>', '<cmd>tabprevious<cr>', { desc = 'Previous tab' })
 
 -- Builtin Terminal
-map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+map('t', '<Esc><Esc>', '<c-\\><c-n>', { desc = 'Exit terminal mode' })
 
 -- For qwerty or laptop
 map({ 'n', 'x', 'o' }, 'gh', '^')
@@ -62,8 +62,10 @@ map('n', '<leader>ui', vim.show_pos, { desc = 'Inspect Pos' })
 map('n', '<leader>uI', '<cmd>InspectTree<cr>', { desc = 'Inspect Tree' })
 
 -- windows
-map('n', '<leader>-', '<C-W>s', { desc = 'Split Window Below' })
-map('n', '<leader>|', '<C-W>v', { desc = 'which_key_ignore' })
-map('n', '<leader>\\', '<C-W>v', { desc = 'Split Window Right' })
+map('n', '<leader>-', '<c-w>s', { desc = 'Split Window Below' })
+map('n', '<leader>|', '<c-w>v', { desc = 'which_key_ignore' })
+map('n', '<leader>\\', '<c-w>v', { desc = 'Split Window Right' })
+
+map('n', '<leader>wp', '<c-w>v<cmd>enew<cr><c-w>xl', { desc = 'Add Window Pad' })
 
 -- vim: ts=2 sts=2 sw=2 et

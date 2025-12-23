@@ -40,7 +40,7 @@
   // disable cursor blink
   "cursor_blink": false,
   // use relative line numbers
-  "relative_line_numbers": true,
+  "relative_line_numbers": "enabled",
   // allow cursor to reach edges of screen
   "vertical_scroll_margin": 8,
   // Formatter
@@ -121,7 +121,7 @@
 
   // Preview tabs
   "preview_tabs": {
-    "enable_preview_from_code_navigation": true
+    "enable_keep_preview_on_code_navigation": true
   },
   "project_panel": {
     "default_width": 300
