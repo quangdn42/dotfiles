@@ -1,9 +1,12 @@
 activeWorkspaceOnFocusChange = true
 alternativeDisplays = ''
+autoAssignAlreadyAssignedApps = false
+autoAssignAppsToWorkspaces = false
 centerCursorOnFocusChange = false
 centerCursorOnWorkspaceChange = true
 changeWorkspaceOnAppAssign = true
 checkForUpdatesAutomatically = false
+cornerHiddenApps = []
 displayMode = 'static'
 enableFocusManagement = true
 enableIntegrations = false
@@ -12,6 +15,7 @@ enableSpaceControl = false
 enableSpaceControlAnimations = true
 enableSpaceControlTilesAnimations = true
 enableSwipeGestures = false
+enableWorkspaceSwitcher = false
 enableWorkspaceTransitions = false
 focusFrontmostWindow = false
 focusNextWorkspaceWindow = 'opt+]'
@@ -31,7 +35,9 @@ runScriptOnProfileChange = 'sketchybar --reload'
 runScriptOnWorkspaceChange = 'sketchybar --trigger flashspace_workspace_change WORKSPACE="$WORKSPACE" DISPLAY="$DISPLAY"'
 showFloatingNotifications = true
 showMenuBarIcon = true
-showMenuBarTitle = false
+showMenuBarTitle = true
+showRecentWorkspaceWhenActivatedTwice = false
+showWorkspaceSwitcher = 'opt+tab'
 skipEmptyWorkspacesOnSwitch = false
 spaceControlCurrentDisplayWorkspaces = false
 spaceControlHideEmptyWorkspaces = false
@@ -50,6 +56,10 @@ switchToRecentWorkspace = 'opt+tab'
 switchWorkspaceOnCursorScreen = false
 switchWorkspaceWhenPipCloses = true
 toggleTheFocusedAppFloating = 'opt+f'
+workspaceSwitcherCurrentDisplayWorkspaces = true
+workspaceSwitcherShowScreenshots = true
+workspaceSwitcherSortByLastActivation = false
+workspaceSwitcherVisibleWorkspaces = 5
 workspaceTransitionDimming = 0.20000000000000001
 workspaceTransitionDuration = 0.29999999999999999
 
@@ -72,3 +82,8 @@ name = 'System Settings'
 bundleIdentifier = 'com.apple.finder'
 iconPath = '/System/Library/CoreServices/Finder.app/Contents/Resources/Finder.icns'
 name = 'Finder'
+
+[[floatingApps]]
+bundleIdentifier = 'com.spotify.client'
+iconPath = '/Applications/Spotify.app/Contents/Resources/AppIcon.icns'
+name = 'Spotify'

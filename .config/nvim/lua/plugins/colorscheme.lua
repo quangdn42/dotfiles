@@ -15,6 +15,9 @@ return {
         -- Link the treesitter capture for Python docstrings to the Comment group.
         -- hl['@string.documentation.python'] = { link = 'Comment' }
       end,
+      on_colors = function(colors)
+        colors.border = colors.blue2
+      end,
     },
   },
   {

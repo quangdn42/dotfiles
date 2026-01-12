@@ -15,10 +15,7 @@ return {
         test = true,
       },
       semanticTokens = true,
-      -- semanticTokensTypes = { string = false, number = false }, -- this doesn't work yet for some reason
-      -- so use the noSemantic version instead
-      noSemanticString = true,
-      noSemanticNumber = true,
+      semanticTokenTypes = { string = false, number = false },
       -- Inlay hints
       hints = {
         -- assignVariableTypes = true,

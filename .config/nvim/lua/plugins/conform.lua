@@ -3,11 +3,12 @@ local formatters_by_ft = {
   hurl = { 'hurlfmt' },
   just = { 'just' },
   lua = { 'stylua' },
-  mysql = { 'sqlfluff' },
-  plsql = { 'sqlfluff' },
+  sql = { 'sql_formatter' },
+  mysql = { 'sql_formatter' },
+  plsql = { 'sql_formatter' },
   python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
   sh = { 'shfmt' },
-  sql = { 'sqlfluff' },
+  yaml = { 'yamlfmt' },
   zig = { 'zigfmt' },
 }
 

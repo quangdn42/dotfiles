@@ -19,6 +19,7 @@ vim.lsp.enable {
   'marksman',
   'pyright',
   'ruff',
+  'yamlls',
   'zls',
 }
 

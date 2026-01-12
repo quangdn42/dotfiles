@@ -1,4 +1,4 @@
--- local client = vim.lsp.start_client {
+-- local client = vim.lsp.start {
 --   name = 'lsp-go',
 --   cmd = { '/Users/quang-dang/Workspaces/lsp-go/bin/main' },
 -- }

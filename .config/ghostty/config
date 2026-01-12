@@ -5,7 +5,7 @@ mouse-hide-while-typing = true
 macos-option-as-alt = true
 
 font-size = 16
-font-family = "IBM Plex Mono"
+# font-family = "IBM Plex Mono"
 # for IBM Plex: 2%
 # adjust-cell-height = 2%
 # adjust-cursor-height = 13%
@@ -16,19 +16,18 @@ unfocused-split-opacity = 1
 adjust-cursor-thickness = 100%
 window-new-tab-position = end
 window-save-state = always
+maximize
 
 # keybinds
-keybind = cmd+enter=new_split:down
-keybind = cmd+shift+enter=new_split:right
-keybind = ctrl+left=resize_split:left,10
-keybind = ctrl+down=resize_split:down,10
-keybind = ctrl+up=resize_split:up,10
-keybind = ctrl+right=resize_split:right,10
+keybind = cmd+enter=new_split:auto
+keybind = performable:ctrl+left=resize_split:left,10
+keybind = performable:ctrl+down=resize_split:down,10
+keybind = performable:ctrl+up=resize_split:up,10
+keybind = performable:ctrl+right=resize_split:right,10
+keybind = performable:ctrl+h=goto_split:left
+keybind = performable:ctrl+j=goto_split:down
+keybind = performable:ctrl+k=goto_split:up
+keybind = performable:ctrl+l=goto_split:right
 keybind = cmd+r=reload_config
-
-keybind = alt+right=unbind
-keybind = alt+left=unbind
-
-keybind = cmd+f=write_scrollback_file:open
 
 # keybind = cmd+k=text:\x0C

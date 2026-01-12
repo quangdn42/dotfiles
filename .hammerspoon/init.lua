@@ -4,4 +4,4 @@ hs.loadSpoon("ControlEscape"):start(200) -- Load Hammerspoon bits from https://g
 
 hs.loadSpoon("FnViNav"):start()
 
-require("chromium_focus").setup()
+-- require("chromium_omnibox_hotkeys").setup()

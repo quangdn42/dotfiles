@@ -7,23 +7,32 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Zed (Default)",
+  },
   "ensure_final_newline_on_save": false,
   "features": {
-    "edit_prediction_provider": "zed"
+    "edit_prediction_provider": "zed",
   },
   "show_edit_predictions": true,
   "edit_predictions": {
-    "mode": "subtle"
+    "mode": "subtle",
   },
   "agent": {
     "always_allow_tool_actions": true,
     "default_profile": "ask",
     "default_model": {
-      "provider": "zed.dev",
-      "model": "claude-sonnet-4"
-    }
+      "provider": "openai",
+      "model": "gpt-5.2",
+    },
   },
-  "theme": "Catppuccin Mocha",
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "Catppuccin Mocha",
+  },
   "ui_font_size": 16,
   "ui_font_family": "JetBrainsMono Nerd Font",
   "buffer_font_size": 16,
@@ -35,7 +44,7 @@
   "vim": {
     "use_system_clipboard": "on_yank",
     "use_smartcase_find": true,
-    "toggle_relative_line_numbers": true
+    "toggle_relative_line_numbers": true,
   },
   // disable cursor blink
   "cursor_blink": false,
@@ -50,12 +59,12 @@
     "git_gutter": "tracked_files",
     "inline_blame": {
       "enabled": true,
-      "delay_ms": 3000
-    }
+      "delay_ms": 3000,
+    },
   },
   // Editor
   "tab_bar": {
-    "show": true
+    "show": true,
   },
   "always_treat_brackets_as_autoclosed": true,
   // LSP
@@ -64,8 +73,8 @@
       "enabled": false,
       "update_debounce_ms": 150,
       "padding": 4,
-      "min_column": 0
-    }
+      "min_column": 0,
+    },
   },
   // Languages
   "inlay_hints": {
@@ -75,33 +84,33 @@
       "shift": false,
       "alt": false,
       "platform": false,
-      "function": false
-    }
+      "function": false,
+    },
   },
   "languages": {
     "Templ": {
-      "language_servers": ["...", "tailwindlabs/tailwindcss-intellisense"]
+      "language_servers": ["...", "tailwindlabs/tailwindcss-intellisense"],
     },
     "Go": {
-      "tab_size": 2
+      "tab_size": 2,
     },
     "Python": {
       "language_servers": ["pyright", "ruff"],
       "format_on_save": "on",
       "formatter": [
         {
-          "code_action": "source.organizeImports.ruff"
+          "code_action": "source.organizeImports.ruff",
         },
         {
-          "code_action": "source.fixAll.ruff"
+          "code_action": "source.fixAll.ruff",
         },
         {
           "language_server": {
-            "name": "ruff"
-          }
-        }
-      ]
-    }
+            "name": "ruff",
+          },
+        },
+      ],
+    },
   },
   "lsp": {
     "gopls": {
@@ -113,18 +122,18 @@
           "constantValues": true,
           "functionTypeParameters": false,
           "parameterNames": false,
-          "rangeVariableTypes": false
-        }
-      }
-    }
+          "rangeVariableTypes": false,
+        },
+      },
+    },
   },
 
   // Preview tabs
   "preview_tabs": {
-    "enable_keep_preview_on_code_navigation": true
+    "enable_keep_preview_on_code_navigation": true,
   },
   "project_panel": {
-    "default_width": 300
+    "default_width": 300,
   },
 
   // Terminal
@@ -133,6 +142,6 @@
     "option_as_meta": true,
     "copy_on_select": true,
     "font_family": "IBM Plex Mono",
-    "font_fallbacks": ["JetBrainsMono Nerd Font"]
-  }
+    "font_fallbacks": ["JetBrainsMono Nerd Font"],
+  },
 }

@@ -15,8 +15,8 @@
       "shift-backspace": "vim::PushSneakBackward",
 
       // Substitute
-      "g p": "vim::PushReplaceWithRegister"
-    }
+      "g p": "vim::PushReplaceWithRegister",
+    },
   },
   // Normal & Visual
   {
@@ -33,18 +33,18 @@
       "alt-i": "editor::SelectSmallerSyntaxNode",
 
       // Subword
-      // "w": ["vim::NextSubwordStart", { "ignore_punctuation": false }],
-      // "e": ["vim::NextSubwordEnd", { "ignore_punctuation": false }],
-      // "b": "vim::PreviousSubwordStart",
-      // "g e": "vim::PreviousSubwordEnd",
+      "w": ["vim::NextSubwordStart", { "ignore_punctuation": false }],
+      "e": ["vim::NextSubwordEnd", { "ignore_punctuation": false }],
+      "b": "vim::PreviousSubwordStart",
+      "g e": "vim::PreviousSubwordEnd",
 
       // LSP Actions
       "space c a": "editor::ToggleCodeActions",
       "g .": null,
       "space c r": "editor::Rename",
       "g r": "editor::FindAllReferences",
-      "space c h": "editor::SwitchSourceHeader"
-    }
+      "space c h": "editor::SwitchSourceHeader",
+    },
   },
   // Normal
   {
@@ -66,6 +66,7 @@
       "space \\": "pane::SplitRight",
       "space -": "pane::SplitDown",
       "space `": "pane::AlternateFile",
+      "space /": "workspace::NewSearch",
 
       // Git operations
       "space g D": "git::Diff",
@@ -73,50 +74,53 @@
       "space g S": "git::StageFile",
       "space g U": "git::UnstageFile",
       "space g a": "git::Add",
-      "space g d": "editor::ToggleSelectedDiffHunks",
+      "space g p": "editor::ToggleSelectedDiffHunks",
       "space g r": "git::Restore",
-      "space g s": "git::StageAndNext",
+      // "space g s": "git::StageAndNext",
       "space g t": "git::ToggleStaged",
-      "space g u": "git::UnstageAndNext",
+      // "space g u": "git::UnstageAndNext",
+
+      // Lazygit
+      "space g s": ["task::Spawn", { "task_name": "lazygit" }],
 
       // Debug operations
       "space d l": "debugger::Rerun",
 
       // treesitter related
       "alt-o": "vim::SelectLargerSyntaxNode",
-      "alt-i": "vim::SelectSmallerSyntaxNode"
-    }
+      "alt-i": "vim::SelectSmallerSyntaxNode",
+    },
   },
   // Visual
   {
     "context": "vim_mode == visual",
     "bindings": {
       "shift-s": ["vim::PushAddSurrounds", {}],
-      "space c f": "editor::FormatSelections"
-    }
+      "space c f": "editor::FormatSelections",
+    },
   },
   // Insert
   {
     "context": "vim_mode == insert",
     "bindings": {
       "alt-down": "editor::MoveLineDown",
-      "alt-up": "editor::MoveLineUp"
-    }
+      "alt-up": "editor::MoveLineUp",
+    },
   },
   // Operator
   {
     "context": "vim_mode == operator",
     "bindings": {
-      "v": "vim::Subword"
-    }
+      "v": "vim::Subword",
+    },
   },
   {
     "context": "vim_operator == a || vim_operator == i || vim_operator == cs",
     "bindings": {
       "b": "vim::MiniBrackets",
       // "g": "vim::EntireFile",
-      "shift-v": ["vim::Subword", { "ignore_punctuation": true }]
-    }
+      "shift-v": ["vim::Subword", { "ignore_punctuation": true }],
+    },
   },
   // Project Panel
   {
@@ -124,7 +128,9 @@
     "bindings": {
       "a": "project_panel::NewFile",
       "d": "project_panel::Delete",
-      // "enter": ["workspace::SendKeystrokes", "o space e"],
+      "s": "project_panel::OpenSplitHorizontal",
+      "o": "project_panel::Open",
+      // "enter": ["workspace::SendKeystrokes", "enter cmd-b"],
       "g Y": "workspace::CopyRelativePath",
       "g y": "workspace::CopyPath",
       "p": "project_panel::Paste",
@@ -132,8 +138,10 @@
       "r": "project_panel::Rename",
       "shift-a": "project_panel::NewDirectory",
       "x": "project_panel::Cut",
-      "y": "project_panel::Copy"
-    }
+      "y": "project_panel::Copy",
+      "space e": "workspace::ToggleLeftDock",
+      "space f": "file_finder::Toggle",
+    },
   },
   // Git Panel
   {
@@ -148,21 +156,21 @@
       "P": "git::Push",
       "q": "workspace::ToggleLeftDock",
       "backspace": null,
-      "escape": "workspace::ToggleLeftDock"
-    }
+      "escape": "workspace::ToggleLeftDock",
+    },
   },
   {
     "context": "GitPanel > Editor",
     "bindings": {
       "alt-y": "git::GenerateCommitMessage",
-      "escape": "git_panel::FocusChanges"
-    }
+      "escape": "git_panel::FocusChanges",
+    },
   },
   {
     "context": "GitCommit > Editor",
     "bindings": {
-      "alt-y": "git::GenerateCommitMessage"
-    }
+      "alt-y": "git::GenerateCommitMessage",
+    },
   },
   // Terminal
   {
@@ -177,8 +185,8 @@
       "cmd-2": "workspace::CloseActiveDock",
       "ctrl-`": "workspace::ToggleBottomDock",
       "alt-left": null,
-      "alt-right": null
-    }
+      "alt-right": null,
+    },
   },
   // Editor wide
   {
@@ -194,8 +202,8 @@
       "ctrl-f5": "debugger::Restart",
       "f3": "debugger::StepOver",
       "f2": "debugger::StepInto",
-      "f1": "debugger::StepOut"
-    }
+      "f1": "debugger::StepOut",
+    },
   },
   {
     "context": "EmptyPane || SharedScreen",
@@ -204,15 +212,15 @@
       // work when no editor exists.
       "space b": "tab_switcher::Toggle",
       "space e": "pane::RevealInProjectPanel",
-      "space f": "file_finder::Toggle"
-    }
+      "space f": "file_finder::Toggle",
+    },
   },
   {
     "context": "Workspace && debugger_running",
     "use_key_equivalents": true,
     "bindings": {
-      "space d e": "debugger::EvaluateSelectedText"
-    }
+      "space d e": "debugger::EvaluateSelectedText",
+    },
   },
 
   // Pane navigation
@@ -222,9 +230,9 @@
       "ctrl-h": "workspace::ActivatePaneLeft",
       "ctrl-l": "workspace::ActivatePaneRight",
       "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-j": "workspace::ActivatePaneDown"
+      "ctrl-j": "workspace::ActivatePaneDown",
       // ... or other keybindings
-    }
+    },
   },
 
   // Code Completion (Language Server)
@@ -233,8 +241,8 @@
     "bindings": {
       "ctrl-m": "editor::ConfirmCompletion",
       "ctrl-y": "editor::ConfirmCompletion",
-      "enter": "editor::NewlineBelow"
-    }
+      "enter": "editor::NewlineBelow",
+    },
   },
   // Edit Prediction (Zed Completion)
   {
@@ -243,56 +251,56 @@
     "bindings": {
       "alt-y": "editor::NextEditPrediction",
       "alt-shift-y": "editor::PreviousEditPrediction",
-      "alt-p": "editor::AcceptPartialEditPrediction"
-    }
+      "alt-p": "editor::AcceptNextWordEditPrediction",
+    },
   },
   {
     "context": "Editor && !edit_prediction",
     "use_key_equivalents": true,
     "bindings": {
       "alt-y": "editor::ShowEditPrediction",
-      "tab": "editor::Tab"
-    }
+      "tab": "editor::Tab",
+    },
   },
   {
     "context": "Editor && edit_prediction",
     "bindings": {
       "alt-y": "editor::AcceptEditPrediction",
-      "tab": null
-    }
+      "tab": null,
+    },
   },
   {
-    "context": "Editor && edit_prediction_conflict",
+    "context": "Editor && (edit_prediction && (showing_completions || in_leading_whitespace))",
     "use_key_equivalents": true,
     "bindings": {
       "alt-y": "editor::AcceptEditPrediction",
-      "tab": null
-    }
+      "tab": null,
+    },
   },
   // Bind `tab` back to its original behavior.
   {
     "context": "Editor",
     "bindings": {
-      "tab": "editor::Tab"
-    }
+      "tab": "editor::Tab",
+    },
   },
   {
     "context": "Editor && showing_completions",
     "bindings": {
-      "tab": "editor::ComposeCompletion"
-    }
+      "tab": "editor::ComposeCompletion",
+    },
   },
   {
     "context": "(VimControl && !menu) || vim_mode == replace || vim_mode == waiting",
     "bindings": {
-      "tab": "vim::Tab"
-    }
+      "tab": "vim::Tab",
+    },
   },
   {
     "context": "vim_mode == literal",
     "bindings": {
-      "tab": ["vim::Literal", ["tab", "\u0009"]]
-    }
+      "tab": ["vim::Literal", ["tab", "\u0009"]],
+    },
   },
   // END bind `tab` back
 
@@ -300,8 +308,8 @@
   {
     "context": "TabSwitcher",
     "bindings": {
-      "x": "tab_switcher::CloseSelectedItem"
-    }
+      "x": "tab_switcher::CloseSelectedItem",
+    },
   },
   // FileFinder split
   {
@@ -310,7 +318,7 @@
     "bindings": {
       "cmd-shift-p": "file_finder::SelectPrevious",
       "ctrl-s": "pane::SplitDown",
-      "ctrl-v": "pane::SplitRight"
-    }
-  }
+      "ctrl-v": "pane::SplitRight",
+    },
+  },
 ]

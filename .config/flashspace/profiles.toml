@@ -21,11 +21,6 @@ iconPath = '/System/Applications/System Settings.app/Contents/Resources/SystemSe
 name = 'System Settings'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.spotify.client'
-iconPath = '/Applications/Spotify.app/Contents/Resources/AppIcon.icns'
-name = 'Spotify'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.apple.finder'
 iconPath = '/System/Library/CoreServices/Finder.app/Contents/Resources/Finder.icns'
 name = 'Finder'
@@ -40,20 +35,21 @@ shortcut = 'opt+r'
 symbolIconName = 'sidebar.right'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.apple.Notes'
-iconPath = '/System/Applications/Notes.app/Contents/Resources/AppIcon.icns'
-name = 'Notes'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'us.zoom.xos'
 iconPath = '/Applications/zoom.us.app/Contents/Resources/ZPLogo.icns'
 name = 'zoom.us'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.spotify.client'
+iconPath = '/Applications/Spotify.app/Contents/Resources/AppIcon.icns'
+name = 'Spotify'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+t'
 display = 'DELL U2723QE'
 id = '34631EF0-E4F8-47C3-AE94-9D7D90612ED4'
 name = 'Terminal'
+openAppsOnActivation = false
 shortcut = 'opt+t'
 symbolIconName = 'apple.terminal'
 
@@ -95,11 +91,6 @@ iconPath = '/Applications/Google Chrome.app/Contents/Resources/app.icns'
 name = 'Google Chrome'
 
 [[profiles.workspaces.apps]]
-bundleIdentifier = 'com.apple.Safari'
-iconPath = '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/Resources/AppIcon.icns'
-name = 'Safari'
-
-[[profiles.workspaces.apps]]
 bundleIdentifier = 'com.microsoft.edgemac'
 iconPath = '/Applications/Microsoft Edge.app/Contents/Resources/app.icns'
 name = 'Microsoft Edge'
@@ -113,6 +104,26 @@ name = 'Firefox'
 bundleIdentifier = 'company.thebrowser.Browser'
 iconPath = '/Applications/Arc.app/Contents/Resources/AppIcon.icns'
 name = 'Arc'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.Safari'
+iconPath = '/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/Contents/Resources/AppIcon.icns'
+name = 'Safari'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.brave.Browser'
+iconPath = '/Applications/Brave Browser.app/Contents/Resources/app.icns'
+name = 'Brave Browser'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.Notes'
+iconPath = '/System/Applications/Notes.app/Contents/Resources/AppIcon.icns'
+name = 'Notes'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.apple.Preview'
+iconPath = '/System/Applications/Preview.app/Contents/Resources/AppIcon.icns'
+name = 'Preview'
 
 [[profiles.workspaces]]
 assignAppShortcut = 'opt+shift+n'
@@ -150,6 +161,11 @@ id = '2C139EE4-E41F-4A5C-A961-63D652968C6B'
 name = 'Zed'
 shortcut = 'opt+z'
 symbolIconName = 'rectangle.and.pencil.and.ellipsis'
+
+[[profiles.workspaces.apps]]
+bundleIdentifier = 'com.google.antigravity'
+iconPath = '/Applications/Antigravity.app/Contents/Resources/Antigravity.icns'
+name = 'Antigravity'
 
 [[profiles.workspaces.apps]]
 bundleIdentifier = 'dev.zed.Zed'

@@ -98,6 +98,7 @@ return {
       { '<leader>B', function() Snacks.picker.buffers { hidden = true, nofile = true } end, desc = 'Buffers (All)' },
       { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep (Root Dir)" },
       { "<leader><space>", function() Snacks.picker.smart() end, desc = "Smart" },
+      { "<leader>e", function() Snacks.picker.explorer() end, desc = "Explorer" },
       { "<leader>f", function() Snacks.picker.files() end, desc = "Find Files (Root)" },
       { "<leader>F", function() Snacks.picker.files { hidden = true, ignored = true } end, desc = "Find Files (All)" },
       -- git
