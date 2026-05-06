@@ -4,6 +4,9 @@
 
 local o = vim.o
 
+-- Use WindLine's global statusline path, which skips focused floating windows.
+o.laststatus = 3
+
 -- Make line numbers default
 o.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -60,20 +63,16 @@ o.cursorline = true
 o.scrolloff = 2
 o.sidescrolloff = 8
 
--- Steal from LazyVim
--- opt.shortmess:append { W = true, I = true, c = true, C = true }
 vim.opt.sessionoptions = { 'buffers', 'curdir', 'tabpages', 'winsize', 'help', 'globals', 'skiprtp', 'folds' }
 o.virtualedit = 'block' -- Allow cursor to move where there is no text in visual block mode
 o.shiftround = true -- Round indent
 o.shiftwidth = 4 -- Size of an indent (in space)
 o.tabstop = 4 -- Size of a tab character
 o.termguicolors = true -- True color support
+-- o.winborder = 'rounded' -- Use rounded borders for floating windows
 -- opt.wildmode = 'longest:full,full' -- Command-line completion mode
 o.winwidth = 10 -- Minimum window width
 o.winminwidth = 10 -- Minimum window width
 o.confirm = true -- Confirm to save changes before exiting modified buffer
-
--- nvim-0.10
-o.smoothscroll = true
 
 -- vim: ts=2 sts=2 sw=2 et

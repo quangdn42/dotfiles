@@ -1,8 +1,6 @@
 -- [[ Basic Keymaps ]]
 local map = vim.keymap.set
 
--- Yank
-map('n', 'Y', 'y$', { desc = 'Yank Till End Of Line' })
 -- Redo
 map('n', 'U', '<C-R>', { desc = 'Redo Last Change' })
 -- Visual mode copy paste

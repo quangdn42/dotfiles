@@ -1,6 +1,5 @@
 -- [[ Setting options ]]
 require 'config.options'
-vim.g.python3_host_prog = '~/py3nvim/bin/python3'
 
 -- [[ Install `lazy.nvim` plugin manager and bootstrap plugins]]
 require 'config.lazy'

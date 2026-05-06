@@ -23,20 +23,12 @@ vim.lsp.enable {
   'zls',
 }
 
-local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
----@diagnostic disable-next-line: duplicate-set-field
-function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
-  opts = opts or {}
-  opts.border = opts.border or 'rounded'
-  return orig_util_open_floating_preview(contents, syntax, opts, ...)
-end
-
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('my-lsp-attach', { clear = true }),
   callback = function(event)
     local map = function(keys, func, desc, mode)
       mode = mode or 'n'
-      vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = desc })
+      vim.keymap.set(mode, keys, func, { buf = event.buf, desc = desc })
     end
 
     -- stylua: ignore start
@@ -44,12 +36,12 @@ vim.api.nvim_create_autocmd('LspAttach', {
     map('gI', function() Snacks.picker.lsp_implementations() end, 'Goto Implementation')
     map('gy', function() Snacks.picker.lsp_type_definitions() end, 'Goto Type Definition')
     map('<leader>sS', function() Snacks.picker.lsp_workspace_symbols() end, 'Workspace Symbols')
-    vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { desc = 'Goto References', nowait = true })
+    vim.keymap.set('n', 'gr', function() Snacks.picker.lsp_references() end, { desc = 'Goto References', nowait = true, buf = event.buf })
     -- stylua: ignore end
     vim.keymap.set('n', '<leader>cr', function()
       local inc_rename = require 'inc_rename'
       return ':' .. inc_rename.config.cmd_name .. ' ' .. vim.fn.expand '<cword>'
-    end, { expr = true, desc = 'Rename Symbol (inc-rename)' })
+    end, { expr = true, desc = 'Rename Symbol (inc-rename)', buf = event.buf })
     map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
     map('<leader>cd', function()
       return require('flash').jump {
@@ -72,9 +64,14 @@ vim.api.nvim_create_autocmd('LspAttach', {
       }
     end, 'View Diagnostics')
     map('gD', vim.lsp.buf.declaration, 'Goto Declaration')
-    map('gK', vim.lsp.buf.signature_help, 'Signature Help')
+    map('K', function()
+      vim.lsp.buf.hover { border = 'rounded' }
+    end, 'Hover')
+    map('gK', function()
+      vim.lsp.buf.signature_help { border = 'rounded' }
+    end, 'Signature Help')
 
-    map('<leader>cl', ':LspInfo<cr>', 'Lsp Info')
+    map('<leader>cl', '<cmd>checkhealth vim.lsp<cr>', 'Lsp Info')
 
     -- Enable Inlay hints
     -- local client = vim.lsp.get_client_by_id(event.data.client_id)

@@ -29,8 +29,7 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
-    cmd = { 'LspInfo', 'LspInstall', 'LspStart' },
-    event = { 'BufReadPre', 'BufNewFile' },
+    -- event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
