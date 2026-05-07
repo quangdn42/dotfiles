@@ -41,7 +41,7 @@ return {
           },
         },
         sections = {
-          { section = 'header', hl = require('tokyonight.colors').setup().cyan },
+          { section = 'header' },
           { section = 'keys', gap = 1, padding = 1 },
           { section = 'startup' },
         },
@@ -90,7 +90,7 @@ return {
               id = 'format_buffer',
               name = 'Buffer Autoformat',
               get = function()
-                return (vim.b.disable_autoformat == nil) and false or not vim.b.disable_autoformat
+                return not vim.b.disable_autoformat
               end,
               set = function(state)
                 vim.b.disable_autoformat = not state
@@ -102,7 +102,7 @@ return {
               id = 'format_global',
               name = 'Global Autoformat',
               get = function()
-                return (vim.g.disable_autoformat == nil) and false or not vim.g.disable_autoformat
+                return not vim.g.disable_autoformat
               end,
               set = function(state)
                 vim.g.disable_autoformat = not state

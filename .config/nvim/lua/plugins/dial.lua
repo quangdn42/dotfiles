@@ -80,7 +80,7 @@ return {
     ---@param augends Augend[]
     ---@return Augend[]
     local function add(augends)
-      return vim.list_extend(default, augends)
+      return vim.list_extend(vim.list_slice(default), augends)
     end
 
     require('dial.config').augends:register_group {
@@ -92,7 +92,6 @@ return {
         augend.semver.alias.semver, -- versioning (v1.1.2)
       },
       zig = add { var_const },
-      python = add { capitalized_boolean },
     }
   end,
 }

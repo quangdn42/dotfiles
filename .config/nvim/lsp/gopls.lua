@@ -1,7 +1,7 @@
 return {
-  on_attach = function()
+  on_attach = function(_, bufnr)
     -- enable inlay hints
-    vim.lsp.inlay_hint.enable()
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end,
   settings = {
     gopls = {

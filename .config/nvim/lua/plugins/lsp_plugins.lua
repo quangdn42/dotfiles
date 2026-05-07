@@ -29,7 +29,6 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
-    -- event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
@@ -37,7 +36,6 @@ return {
       -- IncRename
       { 'smjonas/inc-rename.nvim', cmd = 'IncRename', opts = {} },
     },
-    config = function() end,
   },
   {
     'mason-org/mason.nvim',
