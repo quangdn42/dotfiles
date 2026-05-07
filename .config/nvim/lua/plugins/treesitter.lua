@@ -3,7 +3,7 @@ return {
   {
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
-    dependencies = { 'nvim-treesitter/nvim-treesitter-textobjects', event = 'VeryLazy' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter-textobjects' },
     event = 'VeryLazy',
     cmd = { 'TSUpdateSync', 'TSUpdate', 'TSInstall' },
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
@@ -36,7 +36,7 @@ return {
       indent = { enable = true, disable = { 'ruby' } },
 
       incremental_selection = {
-        enable = true,
+        enable = false,
         keymaps = {
           init_selection = false,
           node_incremental = '<a-o>',
@@ -46,7 +46,7 @@ return {
       },
       textobjects = {
         move = {
-          enable = true,
+          enable = false,
           goto_next_start = { [']f'] = '@function.outer', [']a'] = '@parameter.inner', [']k'] = '@assignment.lhs', [']v'] = '@assignment.rhs' },
           goto_next_end = { [']F'] = '@function.outer', [']A'] = '@parameter.inner', [']K'] = '@assignment.lhs', [']V'] = '@assignment.rhs' },
           goto_previous_start = { ['[f'] = '@function.outer', ['[a'] = '@parameter.inner', ['[k'] = '@assignment.lhs', ['[v'] = '@assignment.rhs' },
@@ -54,25 +54,6 @@ return {
         },
       },
     },
-  },
-
-  {
-    'nvim-treesitter/nvim-treesitter-context',
-    event = 'VeryLazy',
-    opts = function()
-      local tsc = require 'treesitter-context'
-      Snacks.toggle({
-        name = 'Treesitter Context',
-        get = tsc.enabled,
-        set = function(state)
-          if state then
-            tsc.enable()
-          else
-            tsc.disable()
-          end
-        end,
-      }):map '<leader>ut'
-    end,
   },
 
   -- Automatically add closing tags for HTML and JSX

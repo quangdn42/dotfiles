@@ -12,6 +12,8 @@ return {
       transparent = false,
       on_highlights = function(hl, colors)
         hl['SnacksDashboardHeader'] = { fg = colors.blue2 }
+        hl['WinBar'] = { bg = colors.bg }
+        hl['WinBarNC'] = { bg = colors.bg }
         -- Link the treesitter capture for Python docstrings to the Comment group.
         -- hl['@string.documentation.python'] = { link = 'Comment' }
       end,

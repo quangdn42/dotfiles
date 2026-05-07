@@ -1,3 +1,5 @@
+local dropbar_symbols = require 'config.dropbar_symbols'
+
 return {
   -- picker
   {
@@ -12,6 +14,17 @@ return {
           --   multi = { 'treesitter', 'lsp_symbols' },
           --   transform = 'unique_file',
           -- },
+          dropbar_symbols = {
+            finder = dropbar_symbols.finder,
+            format = dropbar_symbols.format,
+            preview = 'file',
+            tree = true,
+            on_change = dropbar_symbols.preview,
+            on_close = dropbar_symbols.close_preview,
+            title = 'Buffer Symbols',
+            layout = { preset = 'vscode', preview = 'main' },
+            jump = { reuse_win = true },
+          },
           projects = {
             dev = { '~/Workspaces/', '~/projects' },
             patterns = { 'justfile', '.jj' },
@@ -107,6 +120,7 @@ return {
       -- Grep
       { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
       { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
+      { '<leader>ss', function() Snacks.picker.pick 'dropbar_symbols' end, desc = 'Buffer Symbols (Dropbar)' },
       { "<leader>sg", function() Snacks.picker.git_files() end, desc = "Find Files (Git)" },
       { "<leader>sG", function() Snacks.picker.grep{ cwd = vim.uv.cwd() } end, desc = "Grep (cwd)" },
       { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Visual selection or word", mode = { "n", "x" } },
