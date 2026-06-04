@@ -8,11 +8,11 @@
 )
 
 (defsrc
-  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
-  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
-  caps a    s    d    f    g    h    j    k    l    ;    '    ret
-  lsft z    x    c    v    b    n    m    ,    .    /    rsft
-  lctl lalt lmet           spc                 rmet ralt
+  grv   1     2     3     4     5     6     7     8     9     0     -     =     bspc
+  tab   q     w     e     r     t     y     u     i     o     p     [     ]     \
+  caps  a     s     d     f     g     h     j     k     l     ;     '     ret
+  lsft  z     x     c     v     b     n     m     ,     .     /     rsft
+  lctl  lalt  lmet                    spc                       rmet  ralt
 )
 
 (defvar
@@ -46,63 +46,64 @@
   esc (tap-hold $tap-time $hold-time esc lctl)
 
   ;; Home row mods
-  a (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lmet $left-hand-keys)
-  s (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lalt $left-hand-keys)
-  d (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lctl $left-hand-keys)
-  f (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lsft $left-hand-keys)
+  ;; f (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lsft $left-hand-keys)
+  z (tap-hold-release-keys $tap-time $hold-time (multi z @tap) lalt $left-hand-keys)
+  x (tap-hold-release-keys $tap-time $hold-time (multi x @tap) lmet $left-hand-keys)
+  c (tap-hold-release-keys $tap-time $hold-time (multi c @tap) lctl $left-hand-keys)
 
-  j (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rsft $right-hand-keys)
-  k (tap-hold-release-keys $tap-time $hold-time (multi k @tap) rctl $right-hand-keys)
-  l (tap-hold-release-keys $tap-time $hold-time (multi l @tap) ralt $right-hand-keys)
-  ; (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rmet $right-hand-keys)
-
-  ;; W and O also act as home row mods for symbol layer
-  w (tap-hold-release-keys $tap-time $hold-time (multi w @tap) (layer-while-held symbols) $left-hand-keys)
-  o (tap-hold-release-keys $tap-time $hold-time (multi o @tap) (layer-while-held symbols) $right-hand-keys)
+  m (tap-hold-release-keys $tap-time $hold-time (multi m @tap) rctl $right-hand-keys)
+  comm (tap-hold-release-keys $tap-time $hold-time (multi , @tap) rmet $right-hand-keys)
+  dot (tap-hold-release-keys $tap-time $hold-time (multi . @tap) ralt $right-hand-keys)
+  slsh (tap-hold-release-keys $tap-time $hold-time (multi / @tap) rsft $right-hand-keys)
 
 
   ;; Navigation Layer (hold Space)
   spc (tap-hold 200 200 spc (layer-while-held symbols))
-  tab (tap-hold 200 200 tab (layer-while-held symbols))
+
+  ;; Symbol layer bottom row mods
+  symz (tap-hold-release-keys $tap-time $hold-time S-= lalt $left-hand-keys)
+  symx (tap-hold-release-keys $tap-time $hold-time S-8 lmet $left-hand-keys)
+  symc (tap-hold-release-keys $tap-time $hold-time S-9 lctl $left-hand-keys)
 )
 
 
 (deflayer base
-  grv 1 2 3 4 5 6 7 8 9 0 - = bspc
-  @tab q w e r t y u i o p [ ] \
-  @esc a s d f g h j k l ; ' ret
-  lsft z x c v b n m , . / rsft
-  lctl lalt lmet    @spc   rmet ralt
+  grv   1     2     3     4     5     6     7     8     9     0     -     =     bspc
+  tab   q     w     e     r     t     y     u     i     o     p     [     ]     \
+  @esc  a     s     d     f     g     h     j     k     l     ;     '     ret
+  lsft  @z    @x    @c    v     b     n     @m    @comm @dot  @slsh rsft
+  lctl  lalt  lmet                    @spc                      rmet  ralt
 )
 
 (deflayer nomods
-  grv 1 2 3 4 5 6 7 8 9 0 - = bspc
-  tab q w e r t y u i o p [ ] \
-  caps a s d f g h j k l ; ' ret
-  lsft z x c v b n m , . / rsft
-  lctl lalt lmet     spc   rmet ralt
+  grv   1     2     3     4     5     6     7     8     9     0     -     =     bspc
+  tab   q     w     e     r     t     y     u     i     o     p     [     ]     \
+  caps  a     s     d     f     g     h     j     k     l     ;     '     ret
+  lsft  z     x     c     v     b     n     m     ,     .     /     rsft
+  lctl  lalt  lmet                    spc                       rmet  ralt
 )
 
 (deflayermap (nav)
-  h left
-  j down
-  k up
-  l right
+  h  left
+  j  down
+  k  up
+  l  right
 
-  a lctl
-  s lalt
-  d lsft
-  f lmet
+  a  lctl
+  s  lalt
+  d  lsft
+  f  lmet
 )
 
 ;; Symbol Layer
 (deflayer symbols
-;;   / < > - | ' @ [ ] \
-;;   ! : * = & # ( ) " %
-;;   ? + { } ~ ^ $ . ; ,
-  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
-  tab  /    S-,  S-.  -    S-\  '    S-2  [    ]    \    [    ]    \
-  caps S-1  S-;  S-8  =    S-7  S-3  S-9  S-0  S-'  S-5  '    ret
-  lsft S-/  S-=  S-[  S-]  S-`  S-6  S-4  .    ;    ,    rsft
-  lctl lalt lmet           spc                 rmet ralt
+;;        <     >     :     -     |     \     ^     $     %     p     [     ]     \
+;;        !     {     }     =     &     left  down  up    right $     '
+;;        +     *     (     )     ~     #     @     .     ;     ,
+;;   Holds: z=lalt x=lmet c=lctl
+  grv   1     2     3     4     5     6     7     8     9     0     -     =     bspc
+  tab   S-,   S-.   S-;   -     S-\   \     S-6   S-4   S-5   p     [     ]     \
+  caps  S-1   S-[   S-]   =     S-7   left  down  up    right S-4   '     ret
+  lsft  @symz @symx @symc S-0   S-`   S-3   S-2   .     ;     ,     rsft
+  lctl  lalt  lmet                    spc                       rmet  ralt
 )
