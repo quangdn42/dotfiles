@@ -52,3 +52,8 @@ if status is-interactive
 	set -g FZF_DEFAULT_OPTS '--bind=up:previous,down:next'
 	zoxide init fish | source
 end
+
+# ZVM
+set -gx ZVM_INSTALL "$HOME/.zvm/self"
+set -gx PATH $PATH "$HOME/.zvm/bin"
+set -gx PATH $PATH "$ZVM_INSTALL/"
