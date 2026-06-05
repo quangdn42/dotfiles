@@ -2,6 +2,7 @@
 return {
   {
     'nvim-treesitter/nvim-treesitter',
+    commit = 'cf12346a3414fa1b06af75c79faebe7f76df080a',
     build = ':TSUpdate',
     -- dependencies = { 'nvim-treesitter/nvim-treesitter-textobjects' },
     event = 'VeryLazy',
@@ -58,6 +59,7 @@ return {
 
   {
     'nvim-treesitter/nvim-treesitter-context',
+    commit = 'b311b30818951d01f7b4bf650521b868b3fece16',
     event = 'VeryLazy',
     opts = function()
       local tsc = require 'treesitter-context'
