@@ -2,6 +2,7 @@ local windline = require 'windline'
 local helper = require 'windline.helpers'
 local sep = helper.separators
 local b_components = require 'windline.components.basic'
+local cache_utils = require 'windline.cache_utils'
 local state = _G.WindLine.state
 local vim_components = require 'windline.components.vim'
 local HSL = require 'wlanimation.utils'
@@ -63,6 +64,78 @@ basic.divider = { b_components.divider, hl_list.Normal }
 
 local width_breakpoint = 100
 
+local function statusline_escape(text)
+  return tostring(text):gsub('%%', '%%%%')
+end
+
+local section_c_file_name = cache_utils.cache_on_buffer(
+  { 'BufEnter', 'BufFilePost', 'DirChanged', 'WinEnter' },
+  'WL_section_c_file_name',
+  function(bufnr, winid)
+    local name = vim.api.nvim_buf_get_name(bufnr or 0)
+    if name == '' then
+      return '[No Name]'
+    end
+
+    local relative
+    if winid and vim.api.nvim_win_is_valid(winid) then
+      local ok, value = pcall(vim.api.nvim_win_call, winid, function()
+        return vim.fn.fnamemodify(name, ':~:.')
+      end)
+      if ok then
+        relative = value
+      end
+    end
+
+    relative = relative or vim.fn.fnamemodify(name, ':~:.')
+    if relative == '' then
+      relative = vim.fn.fnamemodify(name, ':t')
+    end
+
+    return statusline_escape(relative)
+  end
+)
+
+local function get_aerial_location(aerial, winid)
+  if winid and vim.api.nvim_win_is_valid(winid) then
+    return pcall(vim.api.nvim_win_call, winid, function()
+      return aerial.get_location(true)
+    end)
+  end
+
+  return pcall(aerial.get_location, true)
+end
+
+local function section_c_symbols(_, winid, width)
+  local ok, aerial = pcall(require, 'aerial')
+  if not ok then
+    return ''
+  end
+
+  local has_symbols, symbols = get_aerial_location(aerial, winid)
+  if not has_symbols or #symbols == 0 then
+    return ''
+  end
+
+  local first = 1
+  if (width or vim.o.columns) <= width_breakpoint then
+    first = #symbols
+  end
+
+  local parts = {}
+  for i = first, #symbols do
+    local symbol = symbols[i]
+    local name = statusline_escape(symbol.name or '')
+    if symbol.icon and symbol.icon ~= '' then
+      parts[#parts + 1] = symbol.icon .. ' ' .. name
+    else
+      parts[#parts + 1] = name
+    end
+  end
+
+  return ' ⟩ ' .. table.concat(parts, ' ⟩ ')
+end
+
 basic.section_a = {
   hl_colors = airline_colors.a,
   text = function(_, _, width)
@@ -98,8 +171,9 @@ basic.section_c = {
   text = function()
     return {
       { ' ', state.mode[2] },
-      { b_components.cache_file_name('[No Name]', 'unique') },
-      { b_components.file_modified('●', true), state.mode[2] },
+      { section_c_file_name },
+      { b_components.file_modified(' ●', true), state.mode[2] },
+      { section_c_symbols },
       { ' ' },
       { sep.right_filled, state.mode[2] .. 'Sep' },
     }

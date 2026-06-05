@@ -1,17 +1,25 @@
 local ui_events = { 'BufReadPre', 'BufNewFile' }
 return {
   {
-    'Bekaboo/dropbar.nvim',
-    config = function()
-      require('dropbar').setup()
-
-      local dropbar_api = require 'dropbar.api'
-      vim.keymap.set('n', '<Leader>;', dropbar_api.pick, { desc = 'Pick symbols in winbar' })
-      vim.keymap.set('n', '[;', dropbar_api.goto_context_start, { desc = 'Go to start of current context' })
-      vim.keymap.set('n', '];', dropbar_api.select_next_context, { desc = 'Select next context' })
-    end,
+    'stevearc/aerial.nvim',
+    lazy = true,
+    opts = {},
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-tree/nvim-web-devicons',
+    },
+    keys = {
+      {
+        '<leader>ss',
+        function()
+          require('aerial').snacks_picker {
+            layout = { preset = 'vscode', preview = 'main', hidden = {} },
+          }
+        end,
+        desc = 'Buffer Symbols (Aerial)',
+      },
+    },
   },
-
   -- Status line
   {
     'windwp/windline.nvim',
