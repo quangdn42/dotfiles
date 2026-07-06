@@ -1,0 +1,28 @@
+# This is Git's per-user configuration file.
+[user]
+	name = quangdn42
+	email = quangdn42@gmail.com
+[http]
+	proxy = 
+[init]
+	defaultBranch = main
+
+[core]
+  pager = delta
+
+[include]
+  path = "~/.config/delta/catppuccin.gitconfig"
+  path = "~/.config/delta/themes.gitconfig"
+
+[delta]
+  navigate = true    # use n and N to move between diff sections
+  features = catppuccin-mocha
+
+[merge]
+  conflictStyle = zdiff3
+
+[diff]
+  colorMoved = default
+
+[pull]
+	rebase = true
