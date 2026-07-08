@@ -1,5 +1,5 @@
 # EDITOR
-set -gx EDITOR vim
+# set -gx EDITOR vim
 
 # Homebrew
 if test (uname) = Darwin

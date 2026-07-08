@@ -16,6 +16,7 @@ return {
     opts = {
       keymap = {
         preset = 'default',
+        ['<C-m>'] = { 'select_and_accept', 'fallback' },
       },
       cmdline = {
         completion = {
