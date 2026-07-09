@@ -7,6 +7,20 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "ssh_connections": [
+    {
+      "host": "workstation",
+      "username": "quangdn",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/quangdn/Projects/flow/./"
+          ]
+        }
+      ]
+    }
+  ],
   "icon_theme": {
     "mode": "dark",
     "light": "Zed (Default)",
