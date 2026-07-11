@@ -1,17 +1,10 @@
-# EDITOR
-# set -gx EDITOR vim
-
-# Homebrew
-if test (uname) = Darwin
-    for brew_prefix in /opt/homebrew /usr/local
-        set -l brew_bin "$brew_prefix/bin/brew"
-
-        if test -x $brew_bin
-            eval ($brew_bin shellenv)
-            break
-        end
-    end
+# Platform-specific environment and theme config.
+set -l platform_config $HOME/.config/fish/platform.fish
+if test -f $platform_config
+    source $platform_config
 end
+
+set -gx BAT_THEME ansi
 
 # PATH
 fish_add_path -g ~/.local/share/nvim/mason/bin
@@ -21,8 +14,6 @@ if status is-interactive
 
 	set -g fish_key_bindings fish_vi_key_bindings
 	set -g fish_greeting # disable fish greeting
-
-	source $HOME/.config/fish/themes/tokyonight.fish
 
 	# abbr & alias
 	abbr --add ls lsd

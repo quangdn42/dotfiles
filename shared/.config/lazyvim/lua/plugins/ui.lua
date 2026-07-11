@@ -16,7 +16,8 @@ return {
           end
           local ft_icon, ft_color = devicons.get_icon_color(filename)
           local modified = vim.bo[props.buf].modified
-          local colors = require("tokyonight.colors").setup({ style = "moon" })
+          local warning_hl = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn", link = false })
+          local modified_fg = warning_hl.fg and string.format("#%06x", warning_hl.fg) or "yellow"
 
           local function get_git_diff()
             local icons = {
@@ -66,7 +67,7 @@ return {
             { get_git_diff() },
             { (ft_icon or "") .. " ", guifg = ft_color, guibg = "none" },
             { filename },
-            { modified and " ●" or "", guifg = colors.yellow },
+            { modified and " ●" or "", guifg = modified_fg },
           }
         end,
       })

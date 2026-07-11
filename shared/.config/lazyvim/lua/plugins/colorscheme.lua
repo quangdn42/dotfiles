@@ -1,4 +1,4 @@
-return {
+local fallback = {
 
   {
     "folke/tokyonight.nvim",
@@ -81,3 +81,28 @@ return {
   --   },
   -- },
 }
+
+local function omarchy_theme()
+  if (vim.uv or vim.loop).os_uname().sysname ~= "Linux" then
+    return nil
+  end
+
+  local theme_file = vim.fn.expand("~/.config/omarchy/current/theme/neovim.lua")
+  if vim.fn.filereadable(theme_file) ~= 1 then
+    return nil
+  end
+
+  local chunk = loadfile(theme_file)
+  if not chunk then
+    return nil
+  end
+
+  local ok, theme = pcall(chunk)
+  if not ok or type(theme) ~= "table" then
+    return nil
+  end
+
+  return theme
+end
+
+return omarchy_theme() or fallback

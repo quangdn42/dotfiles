@@ -1,4 +1,4 @@
-return {
+local fallback = {
   {
     'folke/tokyonight.nvim',
     enabled = true,
@@ -91,4 +91,61 @@ return {
     },
   },
 }
+
+local function omarchy_theme()
+  if (vim.uv or vim.loop).os_uname().sysname ~= 'Linux' then
+    return nil
+  end
+
+  local theme_file = vim.fn.expand '~/.config/omarchy/current/theme/neovim.lua'
+  if vim.fn.filereadable(theme_file) ~= 1 then
+    return nil
+  end
+
+  local chunk = loadfile(theme_file)
+  if not chunk then
+    return nil
+  end
+
+  local ok, theme = pcall(chunk)
+  if not ok or type(theme) ~= 'table' then
+    return nil
+  end
+
+  local colorscheme
+  local specs = {}
+  for _, spec in ipairs(theme) do
+    if type(spec) == 'table' then
+      if spec[1] == 'LazyVim/LazyVim' then
+        colorscheme = spec.opts and spec.opts.colorscheme
+      else
+        table.insert(specs, vim.deepcopy(spec))
+      end
+    end
+  end
+
+  if not colorscheme or #specs == 0 then
+    return nil
+  end
+
+  for _, spec in ipairs(specs) do
+    spec.lazy = false
+    spec.priority = spec.priority or 1000
+  end
+
+  local theme_spec = specs[1]
+  if type(theme_spec.config) ~= 'function' then
+    local init = theme_spec.init
+    theme_spec.init = function(...)
+      if type(init) == 'function' then
+        init(...)
+      end
+      vim.cmd.colorscheme(colorscheme)
+    end
+  end
+
+  return specs
+end
+
+return omarchy_theme() or fallback
 -- vim: ts=2 sts=2 sw=2 et
