@@ -1,0 +1,56 @@
+#!/bin/bash
+set -euo pipefail
+
+theme_name_file="$HOME/.config/omarchy/current/theme.name"
+colors_file="$HOME/.config/omarchy/current/theme/colors.toml"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+state_file="$state_dir/omarchy-delta.gitconfig"
+
+omarchy_theme="tokyo-night"
+if [[ -r "$theme_name_file" ]]; then
+  IFS= read -r omarchy_theme <"$theme_name_file"
+fi
+
+omarchy_theme="${omarchy_theme#"${omarchy_theme%%[![:space:]]*}"}"
+omarchy_theme="${omarchy_theme%"${omarchy_theme##*[![:space:]]}"}"
+omarchy_theme="${omarchy_theme,,}"
+
+feature="catppuccin-mocha"
+case "$omarchy_theme" in
+  catppuccin)
+    feature="catppuccin-mocha"
+    ;;
+  catppuccin-latte)
+    feature="catppuccin-latte"
+    ;;
+  kanagawa)
+    feature="kanagawa"
+    ;;
+  tokyo-night)
+    feature="tokyonight-night"
+    ;;
+esac
+
+if [[ "$feature" == "catppuccin-mocha" && -r "$colors_file" ]]; then
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^background[[:space:]]*=[[:space:]]*\"#([0-9A-Fa-f]{6})\" ]]; then
+      background="${BASH_REMATCH[1]}"
+      red=$((16#${background:0:2}))
+      green=$((16#${background:2:2}))
+      blue=$((16#${background:4:2}))
+
+      if ((299 * red + 587 * green + 114 * blue > 128000)); then
+        feature="catppuccin-latte"
+      fi
+      break
+    fi
+  done <"$colors_file"
+fi
+
+mkdir -p "$state_dir"
+tmp_file="$(mktemp "$state_dir/omarchy-delta.gitconfig.XXXXXX")"
+{
+  printf '[delta]\n'
+  printf '  features = %s\n' "$feature"
+} >"$tmp_file"
+mv "$tmp_file" "$state_file"

@@ -510,15 +510,54 @@
     merge-conflict-theirs-diff-header-style = yellow bold
     merge-conflict-theirs-diff-header-decoration-style = "#5E81AC" box
 
-[delta "tokyonight-moon"]
-		minus-style                   = syntax "#3a273a"
-		minus-non-emph-style          = syntax "#3a273a"
-		minus-emph-style              = syntax "#6b2e43"
-		minus-empty-line-marker-style = syntax "#3a273a"
-		line-numbers-minus-style      = "#e26a75"
-		plus-style                    = syntax "#273849"
-		plus-non-emph-style           = syntax "#273849"
-		plus-emph-style               = syntax "#305f6f"
-		plus-empty-line-marker-style  = syntax "#273849"
-		line-numbers-plus-style       = "#b8db87"
-		line-numbers-zero-style       = "#3b4261"
+[delta "tokyonight-night"]
+    blame-palette = "#1a1b26 #16161e #0f0f14 #292e42 #3b4261"
+    commit-decoration-style = "#565f89" bold box ul
+    dark = true
+    file-decoration-style = "#565f89"
+    file-style = "#c0caf5"
+    hunk-header-decoration-style = "#565f89" box ul
+    hunk-header-file-style = bold
+    hunk-header-line-number-style = bold "#a9b1d6"
+    hunk-header-style = file line-number syntax
+    line-numbers-left-style = "#565f89"
+    line-numbers-minus-style = bold "#f7768e"
+    line-numbers-plus-style = bold "#9ece6a"
+    line-numbers-right-style = "#565f89"
+    line-numbers-zero-style = "#565f89"
+    minus-emph-style = bold syntax "#713137"
+    minus-style = syntax "#4a272f"
+    plus-emph-style = bold syntax "#485a3e"
+    plus-style = syntax "#343f34"
+    map-styles = \
+        bold purple => syntax "#483d64", \
+        bold blue => syntax "#3c4a6f", \
+        bold cyan => syntax "#3d5a72", \
+        bold yellow => syntax "#5f4f3d"
+    syntax-theme = tokyonight_night
+
+[delta "kanagawa"]
+    blame-palette = "#1f1f28 #1a1a22 #16161d #2d4f67 #54546d"
+    commit-decoration-style = "#727169" bold box ul
+    dark = true
+    file-decoration-style = "#727169"
+    file-style = "#dcd7ba"
+    hunk-header-decoration-style = "#727169" box ul
+    hunk-header-file-style = bold
+    hunk-header-line-number-style = bold "#c8c093"
+    hunk-header-style = file line-number syntax
+    line-numbers-left-style = "#727169"
+    line-numbers-minus-style = bold "#c34043"
+    line-numbers-plus-style = bold "#76946a"
+    line-numbers-right-style = "#727169"
+    line-numbers-zero-style = "#727169"
+    minus-emph-style = bold syntax "#582b31"
+    minus-style = syntax "#40262d"
+    plus-emph-style = bold syntax "#3d483f"
+    plus-style = syntax "#303635"
+    map-styles = \
+        bold purple => syntax "#48415a", \
+        bold blue => syntax "#404b66", \
+        bold cyan => syntax "#3f4f52", \
+        bold yellow => syntax "#574d40"
+    syntax-theme = kanagawa

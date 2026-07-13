@@ -16,7 +16,11 @@
 
 [delta]
   navigate = true    # use n and N to move between diff sections
-  features = catppuccin-mocha
+  features = tokyonight-night
+
+[include]
+  # overwrites delta.features on omarchy
+  path = "~/.local/state/dotfiles/omarchy-delta.gitconfig"
 
 [merge]
   conflictStyle = zdiff3
