@@ -10,7 +10,7 @@ window {
 
 label {
   font-family: 'JetBrainsMono Nerd Font';
-  font-size: 17pt;
+  font-size: 16pt;
 
   color: @label;
 }
