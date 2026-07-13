@@ -1,7 +1,5 @@
 if status is-interactive
-    if not string match -rq '^linux:[^:]+:[^:]+$' -- $__dotfiles_fish_theme
-        __dotfiles_omarchy_fish_theme >/dev/null 2>&1
-    end
+    __dotfiles_omarchy_fish_theme >/dev/null 2>&1
 
     __dotfiles_apply_fish_theme $__dotfiles_fish_theme
 

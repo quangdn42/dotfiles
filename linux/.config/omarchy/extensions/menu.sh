@@ -3,25 +3,19 @@
 # real command elsewhere.
 
 scale_walker_dimension() {
-  case "$1:$2" in
-    --width:295) printf '%s\n' 443 ;;
-    --width:644) printf '%s\n' 966 ;;
-    --width:800) printf '%s\n' 1200 ;;
-    --minheight:300) printf '%s\n' 450 ;;
-    --minheight:400) printf '%s\n' 600 ;;
-    --maxheight:300) printf '%s\n' 450 ;;
-    --maxheight:500) printf '%s\n' 750 ;;
-    --maxheight:630) printf '%s\n' 945 ;;
-    *) printf '%s\n' "$2" ;;
-  esac
+  if [[ $2 =~ ^[0-9]+$ ]] && (( $2 > 1 )); then
+    printf '%s\n' $(( ($2 * 3 + 1) / 2 ))
+  else
+    printf '%s\n' "$2"
+  fi
 }
 
-omarchy-launch-walker() {
+scale_walker_args() {
   local args=()
 
   while (( $# > 0 )); do
     case "$1" in
-      --width|--minheight|--maxheight)
+      --width|--height|--minwidth|--maxwidth|--minheight|--maxheight)
         if (( $# > 1 )); then
           args+=("$1" "$(scale_walker_dimension "$1" "$2")")
           shift 2
@@ -30,7 +24,7 @@ omarchy-launch-walker() {
           shift
         fi
         ;;
-      --width=*|--minheight=*|--maxheight=*)
+      --width=*|--height=*|--minwidth=*|--maxwidth=*|--minheight=*|--maxheight=*)
         local key="${1%%=*}"
         local value="${1#*=}"
         args+=("$key=$(scale_walker_dimension "$key" "$value")")
@@ -43,5 +37,21 @@ omarchy-launch-walker() {
     esac
   done
 
+  if (( ${#args[@]} > 0 )); then
+    printf '%s\0' "${args[@]}"
+  fi
+}
+
+omarchy-launch-walker() {
+  local args=()
+  mapfile -d '' -t args < <(scale_walker_args "$@")
+
   command omarchy-launch-walker "${args[@]}"
+}
+
+walker() {
+  local args=()
+  mapfile -d '' -t args < <(scale_walker_args "$@")
+
+  command walker "${args[@]}"
 }

@@ -1,9 +1,12 @@
 # Homebrew
-set -l brew_bin /opt/homebrew/bin/brew
-if test (uname -m) = x86_64
-    set brew_bin /usr/local/bin/brew
+for brew_prefix in /opt/homebrew /usr/local
+    set -l brew_bin "$brew_prefix/bin/brew"
+
+    if test -x $brew_bin
+        eval ($brew_bin shellenv)
+        break
+    end
 end
-eval ($brew_bin shellenv)
 
 if status is-interactive
     __dotfiles_apply_fish_theme tokyonight

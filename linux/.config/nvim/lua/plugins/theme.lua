@@ -1,4 +1,14 @@
 local theme_module = 'omarchy.theme'
+local theme_file = vim.fn.expand '~/.config/omarchy/current/theme/neovim.lua'
+
+local function theme_signature()
+  local stat = (vim.uv or vim.loop).fs_stat(theme_file)
+  if not stat then
+    return 'missing'
+  end
+
+  return table.concat({ theme_file, stat.mtime.sec, stat.mtime.nsec or 0, stat.size }, ':')
+end
 
 local function load_theme()
   package.loaded[theme_module] = nil
@@ -11,17 +21,31 @@ local function load_theme()
   return specs
 end
 
+local function plugin_key(spec)
+  if type(spec) ~= 'table' then
+    return nil
+  end
+
+  if type(spec.name) == 'string' then
+    return spec.name
+  end
+
+  if type(spec[1]) == 'string' then
+    return spec[1]:match '/([^/]+)$' or spec[1]
+  end
+end
+
 local function parse_theme(specs)
   local plugin_specs = {}
   local colorscheme
   local plugin_name
 
   for _, spec in ipairs(specs) do
-    if type(spec) == 'table' and type(spec.opts) == 'table' and spec.opts.colorscheme ~= nil then
-      colorscheme = spec.opts.colorscheme
+    if type(spec) == 'table' and spec[1] == 'LazyVim/LazyVim' and type(spec.opts) == 'table' then
+      colorscheme = spec.opts.colorscheme or colorscheme
     elseif type(spec) == 'table' then
       plugin_specs[#plugin_specs + 1] = spec
-      plugin_name = plugin_name or spec.name or spec[1]
+      plugin_name = plugin_name or plugin_key(spec)
     end
   end
 
@@ -38,54 +62,53 @@ local function theme_specs()
     priority = 1000,
     config = function()
       local transparency_file = vim.fn.stdpath 'config' .. '/plugin/after/transparency.lua'
+      local last_signature
 
-      local function apply_theme()
+      local function apply_theme(force)
+        local signature = theme_signature()
+        if not force and signature == last_signature then
+          return
+        end
+        last_signature = signature
+
         local _, colorscheme, plugin_name = parse_theme(load_theme())
         if not colorscheme then
           return
         end
 
-        vim.cmd 'highlight clear'
-        if vim.fn.exists 'syntax_on' then
-          vim.cmd 'syntax reset'
-        end
-
-        -- Reset background so light themes can set it explicitly.
-        vim.o.background = 'dark'
-
-        if plugin_name then
-          local plugin = require('lazy.core.config').plugins[plugin_name]
-          if plugin then
-            require('lazy.core.util').walkmods(plugin.dir .. '/lua', function(modname)
-              package.loaded[modname] = nil
-              package.preload[modname] = nil
-            end)
+        local lazy_config = require 'lazy.core.config'
+        local loader = require 'lazy.core.loader'
+        local plugin = plugin_name and lazy_config.plugins[plugin_name]
+        if plugin and plugin._ and plugin._.loaded then
+          local ok, err = pcall(loader.reload, plugin)
+          if not ok then
+            vim.notify(('Failed to reload theme plugin %s: %s'):format(plugin_name, err), vim.log.levels.WARN)
           end
         end
 
-        require('lazy.core.loader').colorscheme(colorscheme)
+        loader.colorscheme(colorscheme)
 
-        vim.defer_fn(function()
-          pcall(vim.cmd.colorscheme, colorscheme)
-          vim.cmd 'redraw!'
+        local ok, err = pcall(vim.cmd.colorscheme, colorscheme)
+        if not ok then
+          vim.notify(('Failed to apply colorscheme %s: %s'):format(colorscheme, err), vim.log.levels.WARN)
+          return
+        end
 
-          if vim.fn.filereadable(transparency_file) == 1 then
-            vim.defer_fn(function()
-              vim.cmd.source(transparency_file)
-              vim.api.nvim_exec_autocmds('ColorScheme', { modeline = false })
-              vim.api.nvim_exec_autocmds('VimEnter', { modeline = false })
-              vim.cmd 'redraw!'
-            end, 5)
-          end
-        end, 5)
+        if vim.fn.filereadable(transparency_file) == 1 then
+          pcall(vim.cmd.source, transparency_file)
+        end
+
+        vim.cmd 'redraw!'
       end
 
-      apply_theme()
+      apply_theme(true)
 
       vim.api.nvim_create_autocmd('User', {
         pattern = 'LazyReload',
         callback = function()
-          vim.schedule(apply_theme)
+          vim.schedule(function()
+            apply_theme(false)
+          end)
         end,
       })
     end,

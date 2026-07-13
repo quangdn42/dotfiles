@@ -3,7 +3,7 @@ set -euo pipefail
 
 theme_name_file="$HOME/.config/omarchy/current/theme.name"
 colors_file="$HOME/.config/omarchy/current/theme/colors.toml"
-state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+state_dir="$HOME/.local/state/dotfiles"
 state_file="$state_dir/omarchy-delta.gitconfig"
 
 omarchy_theme="tokyo-night"

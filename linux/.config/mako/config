@@ -1,0 +1,6 @@
+include=~/.config/omarchy/current/theme/mako.ini
+
+font=sans-serif 21px
+width=630
+padding=15,22
+max-icon-size=48
