@@ -6,5 +6,5 @@ end
 eval ($brew_bin shellenv)
 
 if status is-interactive
-    source $HOME/.config/fish/themes/tokyonight.fish
+    __dotfiles_apply_fish_theme tokyonight
 end

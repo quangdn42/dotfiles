@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euo pipefail
+
+fish --command __dotfiles_omarchy_fish_theme
