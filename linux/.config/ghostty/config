@@ -1,10 +1,12 @@
+command = /usr/bin/fish
+
 # Dynamic theme colors
 config-file = ?"~/.config/omarchy/current/theme/ghostty.conf"
 
 # Font
 font-family = "JetBrainsMono Nerd Font"
 font-style = Regular
-font-size = 18
+font-size = 16
 
 # Window
 window-theme = ghostty
