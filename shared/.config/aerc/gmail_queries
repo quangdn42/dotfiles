@@ -1,0 +1,17 @@
+# Primary views
+Inbox=folder:INBOX and not tag:deleted
+Unread=tag:inbox and tag:unread and not tag:deleted
+AllUnread=tag:unread and not tag:deleted
+Archive=not tag:inbox and not tag:draft and not tag:deleted
+Sent=from:me and not tag:draft and not tag:deleted
+Drafts=tag:draft
+Trash=tag:deleted
+
+# Standard status
+Starred=tag:flagged
+Replied=tag:replied
+Forwarded=tag:passed
+
+# Useful searches
+Recent=date:30d.. and not tag:deleted
+All=*

@@ -1,0 +1,15 @@
+defaults
+auth on
+tls on
+tls_starttls on
+
+account gmail
+host smtp.gmail.com
+port 587
+
+from ammon134@gmail.com
+user ammon134@gmail.com
+
+passwordeval "rbw get 'Main Gmail' --field='AppPassword_aerc'"
+
+account default : gmail

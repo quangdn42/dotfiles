@@ -1,0 +1,31 @@
+IMAPAccount gmail
+Host imap.gmail.com
+Port 993
+User ammon134@gmail.com
+PassCmd "rbw get 'Main Gmail' --field='AppPassword_aerc'" 
+TLSType IMAPS
+
+IMAPStore gmail-remote
+Account gmail
+
+MaildirStore gmail-local
+SubFolders Verbatim
+Path ~/.local/share/mail/gmail/
+Inbox ~/.local/share/mail/gmail/INBOX
+
+Channel gmail
+Far :gmail-remote:
+Near :gmail-local:
+Patterns INBOX "[Gmail]/All Mail" "[Gmail]/Drafts" "[Gmail]/Trash"
+Create Near
+Sync All
+Expunge Both
+CopyArrivalDate yes
+SyncState *
+# Keep at most N messages locally
+# MaxMessages 5000
+# IF MaxMessages, unread should not be trimmed
+# ExpireUnread no
+# Skip downloading messages larger than 50 MiB
+MaxSize 50m
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+mbsync gmail
+notmuch new
+
+# Folder-derived tags
+notmuch tag +inbox -- 'folder:INBOX'
+notmuch tag -inbox -- 'tag:inbox and not folder:INBOX'
+
+notmuch tag +draft -- 'folder:"[Gmail]/Drafts"'
+notmuch tag -draft -- 'tag:draft and not folder:"[Gmail]/Drafts"'
+
+notmuch tag +deleted -- 'folder:"[Gmail]/Trash"'
+notmuch tag -deleted -- 'tag:deleted and not folder:"[Gmail]/Trash"'
