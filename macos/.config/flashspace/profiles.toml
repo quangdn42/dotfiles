@@ -45,12 +45,12 @@ iconPath = '/Applications/Spotify.app/Contents/Resources/AppIcon.icns'
 name = 'Spotify'
 
 [[profiles.workspaces]]
-assignAppShortcut = 'opt+shift+t'
+assignAppShortcut = 'opt+shift+d'
 display = 'DELL U2723QE'
 id = '34631EF0-E4F8-47C3-AE94-9D7D90612ED4'
 name = 'Terminal'
 openAppsOnActivation = false
-shortcut = 'opt+t'
+shortcut = 'opt+d'
 symbolIconName = 'apple.terminal'
 
 [[profiles.workspaces.apps]]
@@ -78,11 +78,12 @@ iconPath = '/Applications/Ghostty.app/Contents/Resources/Ghostty.icns'
 name = 'Ghostty'
 
 [[profiles.workspaces]]
-assignAppShortcut = 'opt+shift+s'
+assignAppShortcut = 'opt+shift+f'
 display = 'DELL U2723QE'
 id = '3B9F5074-A9D9-47C4-97E2-3998321CEC95'
 name = 'Browser'
-shortcut = 'opt+s'
+openAppsOnActivation = false
+shortcut = 'opt+f'
 symbolIconName = 'network'
 
 [[profiles.workspaces.apps]]
@@ -126,12 +127,12 @@ iconPath = '/System/Applications/Preview.app/Contents/Resources/AppIcon.icns'
 name = 'Preview'
 
 [[profiles.workspaces]]
-assignAppShortcut = 'opt+shift+n'
+assignAppShortcut = 'opt+shift+s'
 display = 'DELL U2723QE'
 id = '2E8672DD-9D93-4BEF-8358-3E8A24C826F2'
-name = 'Notifications'
+name = 'Social'
 openAppsOnActivation = false
-shortcut = 'opt+n'
+shortcut = 'opt+s'
 symbolIconName = 'message'
 
 [[profiles.workspaces.apps]]
@@ -155,11 +156,12 @@ iconPath = '/Applications/WhatsApp.app/Contents/Resources/AppIconCatalystRelease
 name = "\u200EWhatsApp"
 
 [[profiles.workspaces]]
-assignAppShortcut = 'opt+shift+z'
+assignAppShortcut = 'opt+shift+e'
 display = 'DELL U2723QE'
 id = '2C139EE4-E41F-4A5C-A961-63D652968C6B'
-name = 'Zed'
-shortcut = 'opt+z'
+name = 'Editor'
+openAppsOnActivation = false
+shortcut = 'opt+e'
 symbolIconName = 'rectangle.and.pencil.and.ellipsis'
 
 [[profiles.workspaces.apps]]
