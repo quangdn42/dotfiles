@@ -44,14 +44,15 @@ the complete remote stream:
 - `raycast-state.tar.zst.age`
 - `zed-agent.tar.zst.age`
 - `codex-agent.tar.zst.age`
+- `projects.tar.zst.age`
 
 Safari raw state and Apple local state were explicitly skipped; use supported
 cloud synchronization for both. A failed local Safari artifact is not uploaded
 and must not enter the final manifest.
 
-`projects/` remains the final agent-run data archive. The current OpenCode
-session export and raw-state snapshot happen from a normal terminal only after
-this session is finished and closed.
+`projects/` was the final agent-run data archive. The current OpenCode session
+export and raw-state snapshot happen from a normal terminal only after this
+session is finished and closed.
 
 ## Part I: Back Up the Current Mac
 
@@ -82,7 +83,7 @@ The required archive order is:
 | 4 | Curated application state and Raycast emergency state | Complete |
 | 5 | Selected local-only Apple state | Skipped; cloud verification required |
 | 6 | Native Zed and Codex state | Complete |
-| 7 | Final dotfiles commit and complete `projects/` archive | Pending; projects last |
+| 7 | Final dotfiles commit and complete `projects/` archive | Complete; projects was last |
 | 8 | OpenCode portable exports and raw emergency state | Final terminal-only step |
 
 Use [`backup.md`](backup.md) only when this sequence calls for exact retained

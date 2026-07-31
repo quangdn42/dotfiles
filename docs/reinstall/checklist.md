@@ -19,8 +19,8 @@ them complete automatically without validation.
 - [x] Make Kanata generate its installed plist from the active home path.
 - [x] Make active Fish configuration match the selected software.
 - [x] Add and test mise activation.
-- [ ] Push every dotfiles commit to `origin/main`.
-- [ ] Clone the repository into a temporary directory and inspect it.
+- [x] Push every dotfiles commit to `origin/main`.
+- [x] Clone the repository into a temporary directory and inspect it.
 
 ## Manual Preparation
 
@@ -113,7 +113,7 @@ them complete automatically without validation.
 
 ## Backup Creation
 
-- [ ] Create the projects archive.
+- [x] Create the projects archive last and verify its complete remote stream.
 - [x] Create the workspaces archive.
 - [x] Create the personal-data archive.
 - [x] Create the downloads archive.
@@ -140,12 +140,12 @@ them complete automatically without validation.
 - [ ] Every archive passes local and remote verification.
 - [ ] The age identity is recoverable without relying on this Mac.
 - [ ] Bitwarden, Google, Apple, and GitHub recovery are verified.
-- [ ] The dotfiles repository is pushed and independently cloneable.
+- [x] The dotfiles repository is pushed and independently cloneable.
 - [ ] Browser history/settings have both sync and encrypted fallback coverage.
 - [ ] OpenCode has portable exports and a valid raw backup.
 - [ ] The current planning session is in the verified portable export archive,
       and its final runbook commit is pushed.
-- [ ] Native Zed Agent threads and Codex sessions have valid encrypted backups.
+- [x] Native Zed Agent threads and Codex sessions have valid encrypted backups.
 - [ ] No upload, Git push, or cloud sync is pending.
 - [ ] An explicit final approval to erase has been given.
 
