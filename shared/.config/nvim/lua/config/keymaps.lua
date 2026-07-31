@@ -6,8 +6,6 @@ map('n', 'U', '<C-R>', { desc = 'Redo Last Change' })
 -- Visual mode copy paste
 map('v', 'C', '"_c', { desc = 'Change Without Yank' })
 map('v', 'D', '"_d', { desc = 'Delete Without Yank' })
--- remap gx
-map({ 'n', 'x' }, 'go', 'gx', { desc = 'Open filepath or URI under cursor with system handler' })
 
 -- Move screen
 -- map('n', '<C-Y>', function()

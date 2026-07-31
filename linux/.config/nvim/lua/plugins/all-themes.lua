@@ -13,7 +13,7 @@ return {
     priority = 1000,
     opts = {
       dim_inactive = { enabled = false },
-      integration = {
+      integrations = {
         cmp = false,
         blink_cmp = true,
         diffview = true,

@@ -14,7 +14,6 @@ return {
     lazy = true,
     dependencies = {
       'MunifTanjim/nui.nvim',
-      'nvim-lua/plenary.nvim',
       'folke/snacks.nvim',
     },
     opts = {},

@@ -16,6 +16,14 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = '\\'
 
+-- Preserve Neovim's native URI handler before plugins claim `gx`.
+for _, mode in ipairs { 'n', 'x' } do
+  local native_gx = vim.fn.maparg('gx', mode, false, true)
+  if type(native_gx.callback) == 'function' then
+    vim.keymap.set(mode, 'go', native_gx.callback, { desc = 'Open filepath or URI with system handler' })
+  end
+end
+
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup {
   spec = {

@@ -2,9 +2,11 @@ return {
   {
     'nvim-neotest/neotest',
     dependencies = {
-      'nvim-neotest/nvim-nio',
-      'lawrence-laz/neotest-zig',
       'antoinemadec/FixCursorHold.nvim',
+      'lawrence-laz/neotest-zig',
+      'nvim-lua/plenary.nvim',
+      'nvim-neotest/nvim-nio',
+      'nvim-treesitter/nvim-treesitter',
     },
     opts = {
       -- Can be a list of adapters like what neotest expects,
@@ -12,7 +14,7 @@ return {
       -- or a table of adapter names, mapped to adapter configs.
       -- The adapter will then be automatically loaded with the config.
       adapters = {
-        ['neotest-zig'] = {},
+        ['neotest-zig'] = { dap = { adapter = 'codelldb' } },
       },
       -- Example for loading neotest-golang with a custom config
       -- adapters = {

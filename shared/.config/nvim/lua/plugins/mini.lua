@@ -134,15 +134,27 @@ return {
             elseif row == top then
               move = 'j'
             end
+            local bufnr = vim.api.nvim_get_current_buf()
+            local winid = vim.api.nvim_get_current_win()
+            local column = scope.reference.column
             local ns = vim.api.nvim_create_namespace 'border'
-            vim.hl.range(0, ns, 'Substitute', { top - 1, 0 }, { top - 1, -1 })
-            vim.hl.range(0, ns, 'Substitute', { bottom - 1, 0 }, { bottom - 1, -1 })
+            vim.hl.range(bufnr, ns, 'Substitute', { top - 1, 0 }, { top - 1, -1 })
+            vim.hl.range(bufnr, ns, 'Substitute', { bottom - 1, 0 }, { bottom - 1, -1 })
             vim.defer_fn(function()
-              vim.cmd('silent' .. tostring(top .. ',' .. bottom .. '<'))
-              vim.cmd(tostring(bottom .. 'delete'))
-              vim.cmd(tostring(top .. 'delete'))
-              vim.fn.setcursorcharpos(row - 1, scope.reference.column)
-              vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+              if not vim.api.nvim_buf_is_valid(bufnr) then
+                return
+              end
+              if not vim.api.nvim_win_is_valid(winid) or vim.api.nvim_win_get_buf(winid) ~= bufnr then
+                vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+                return
+              end
+              vim.api.nvim_win_call(winid, function()
+                vim.cmd('silent' .. tostring(top .. ',' .. bottom .. '<'))
+                vim.cmd(tostring(bottom .. 'delete'))
+                vim.cmd(tostring(top .. 'delete'))
+                vim.fn.setcursorcharpos(row - 1, column)
+                vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+              end)
             end, 150)
             return '<esc>' .. move
           else

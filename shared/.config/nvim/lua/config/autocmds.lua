@@ -54,6 +54,9 @@ vim.api.nvim_create_autocmd('FileType', {
   callback = function(event)
     vim.bo[event.buf].buflisted = false
     vim.schedule(function()
+      if not vim.api.nvim_buf_is_valid(event.buf) then
+        return
+      end
       vim.keymap.set('n', 'q', function()
         vim.cmd 'close'
         pcall(vim.api.nvim_buf_delete, event.buf, { force = true })
@@ -76,12 +79,15 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 
 -- wrap and check for spell in text filetypes
-vim.api.nvim_create_autocmd('FileType', {
+local text_filetypes = { gitcommit = true, markdown = true, plaintex = true, text = true, typst = true }
+vim.api.nvim_create_autocmd({ 'BufEnter', 'FileType', 'WinEnter' }, {
   group = augroup 'wrap_spell',
-  pattern = { 'text', 'plaintex', 'typst', 'gitcommit', 'markdown' },
-  callback = function()
-    vim.opt_local.wrap = true
-    vim.opt_local.spell = true
+  callback = function(event)
+    local enabled = text_filetypes[vim.bo[event.buf].filetype] or false
+    for _, winid in ipairs(vim.fn.win_findbuf(event.buf)) do
+      vim.wo[winid].wrap = enabled
+      vim.wo[winid].spell = enabled
+    end
   end,
 })
 

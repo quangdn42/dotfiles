@@ -7,7 +7,13 @@ end
 set -gx BAT_THEME ansi
 
 # PATH
-fish_add_path -g ~/.local/share/nvim/mason/bin ~/.local/bin/
+if not contains -- $HOME/.local/bin $PATH
+    set -gx PATH $PATH $HOME/.local/bin
+end
+
+if type -q mise
+    mise activate fish | source
+end
 
 if status is-interactive
   # Commands to run in interactive sessions can go here
