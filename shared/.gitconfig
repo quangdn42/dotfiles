@@ -16,7 +16,7 @@
 
 [delta]
   navigate = true    # use n and N to move between diff sections
-  features = tokyonight-night
+  features = catppuccin-mocha
 
 [include]
   # overwrites delta.features on omarchy
