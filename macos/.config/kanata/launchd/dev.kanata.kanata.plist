@@ -44,7 +44,7 @@
     <array>
         <string>/opt/homebrew/bin/kanata</string>
         <string>-c</string>
-        <string>/Users/quang-dang/.config/kanata/macbook.kbd</string>
+        <string>__KANATA_CONFIG__</string>
     </array>
 
     <key>UserName</key>

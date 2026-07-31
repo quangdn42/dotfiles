@@ -38,15 +38,20 @@ the complete remote stream:
 - `browser-firefox.tar.zst.age`
 - `browser-brave.tar.zst.age`
 - `browser-edge.tar.zst.age`
+- `browser-arc.tar.zst.age`
+- `browser-chrome.tar.zst.age`
+- `app-state.tar.zst.age`
+- `raycast-state.tar.zst.age`
+- `zed-agent.tar.zst.age`
+- `codex-agent.tar.zst.age`
 
-`browser-arc.tar.zst.age` and its sidecars exist locally and remotely, but the
-command was interrupted after upload. Re-run its checksum and decryption checks
-before accepting it; do not overwrite it merely because verification is
-incomplete.
+Safari raw state and Apple local state were explicitly skipped; use supported
+cloud synchronization for both. A failed local Safari artifact is not uploaded
+and must not enter the final manifest.
 
-All other archives remain pending. `projects/` must be the final agent-run data
-archive. The current OpenCode session export and raw-state snapshot happen from
-a normal terminal only after this session is finished and closed.
+`projects/` remains the final agent-run data archive. The current OpenCode
+session export and raw-state snapshot happen from a normal terminal only after
+this session is finished and closed.
 
 ## Part I: Back Up the Current Mac
 
@@ -73,10 +78,10 @@ The required archive order is:
 | ---: | --- | --- |
 | 1 | Credentials and selected developer history | Complete |
 | 2 | Personal roots, Downloads, and workspaces | Complete |
-| 3 | One archive per browser | In progress |
-| 4 | Curated application state and Raycast emergency state | Pending |
-| 5 | Selected local-only Apple state | Pending review |
-| 6 | Native Zed and Codex state | Pending |
+| 3 | Chrome, Edge, Firefox, Arc, and Brave browser archives | Complete; Safari uses sync only |
+| 4 | Curated application state and Raycast emergency state | Complete |
+| 5 | Selected local-only Apple state | Skipped; cloud verification required |
+| 6 | Native Zed and Codex state | Complete |
 | 7 | Final dotfiles commit and complete `projects/` archive | Pending; projects last |
 | 8 | OpenCode portable exports and raw emergency state | Final terminal-only step |
 
@@ -469,8 +474,8 @@ present in the emergency archive.
 1. Install and launch Safari, Chrome, Firefox, and Arc normally.
 2. Sign in and allow browser sync to finish.
 3. Confirm bookmarks, extensions, settings, and history.
-4. Extract each browser archive under `$RECOVERY_ROOT/browsers`, never over a
-   running browser profile.
+4. Extract each available browser archive under `$RECOVERY_ROOT/browsers`,
+   never over a running browser profile. No Safari archive exists for this run.
 5. Use the raw archive only to recover data that sync did not restore.
 
 Edge is not reinstalled automatically, but its archived profile remains
@@ -694,7 +699,10 @@ Allow Apple account synchronization to finish before restoring local stores.
 Verify Messages, Mail, Notes, Voice Memos, contacts, calendars, reminders,
 device backups, and iCloud Keychain.
 
-If `apple-local-state.tar.zst.age` exists, extract it to staging:
+No `apple-local-state.tar.zst.age` was created for this run. Rely on Apple
+account synchronization and stop if required local-only data is missing.
+
+For a future run where that archive exists, extract it to staging:
 
 ```sh
 mkdir -p "$RECOVERY_ROOT/apple"

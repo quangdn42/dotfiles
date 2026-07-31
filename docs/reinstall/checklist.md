@@ -16,9 +16,9 @@ them complete automatically without validation.
 - [ ] Review `Brewfile` and `Brewfile.mas` for unwanted software.
 - [ ] Review the direct backup commands and their recorded evidence.
 - [ ] Implement and review curated macOS defaults.
-- [ ] Make Kanata use the active home path.
-- [ ] Make active Fish configuration match the selected software.
-- [ ] Add and test mise activation.
+- [x] Make Kanata generate its installed plist from the active home path.
+- [x] Make active Fish configuration match the selected software.
+- [x] Add and test mise activation.
 - [ ] Push every dotfiles commit to `origin/main`.
 - [ ] Clone the repository into a temporary directory and inspect it.
 
@@ -37,15 +37,16 @@ them complete automatically without validation.
 
 ## Encryption Preparation
 
-- [ ] Install or make available `age`, `zstd`, and `rclone`.
-- [ ] Generate a dedicated age identity for this backup.
-- [ ] Store the age private identity in Bitwarden.
-- [ ] Record the public age recipient in the backup manifest.
-- [ ] Retrieve the identity from Bitwarden in an independent test.
-- [ ] Encrypt and decrypt a test archive.
-- [ ] Configure a dedicated rclone Google Drive remote without committing its
+- [x] Install or make available `age`, `zstd`, and `rclone`.
+- [x] Generate a dedicated age identity for this backup.
+- [x] Store the age private identity in Bitwarden.
+- [ ] Record the public age recipient in the final backup manifest.
+- [x] Retrieve the identity from Bitwarden and compare it byte-for-byte on this
+      Mac.
+- [x] Encrypt and decrypt a test archive.
+- [x] Configure a dedicated rclone Google Drive remote without committing its
       credentials.
-- [ ] Upload, download, checksum, and decrypt a test archive.
+- [x] Upload, download, checksum, and decrypt a test archive.
 
 ## Data Preparation
 
@@ -54,24 +55,24 @@ them complete automatically without validation.
 - [ ] Push all desired Git commits and branches while preserving uncommitted
       and ignored files in the archive.
 - [ ] Verify browser sync for Safari, Chrome, Edge, Firefox, and Arc.
-- [ ] Check for a remaining Brave profile.
+- [x] Check for and archive the remaining Brave profile.
 - [ ] Export browser bookmarks and record extensions.
 - [x] Confirm VS Code local History and workspace state are intentionally
       excluded.
 - [ ] Verify Steam Cloud where applicable.
 - [ ] Review OBS scenes/profiles and GIMP user resources.
-- [ ] Locate SSH and GPG credentials.
-- [ ] Verify Fish, database CLI, zoxide, and Lazygit history paths.
+- [x] Locate SSH credentials and confirm no GPG directory exists.
+- [x] Verify Fish, database CLI, zoxide, and Lazygit history paths.
 - [x] Confirm zsh/bash, REPL, Vim/Neovim, extra AI, and GUI database-client
       histories remain intentionally excluded.
 - [ ] Verify Raycast Sync and confirm the rotated token is no longer valid.
 - [ ] Verify WhatsApp and Zalo account/cloud recovery; do not archive local
       databases or media.
-- [ ] Grant the backup terminal Full Disk Access.
+- [x] Confirm the backup terminal can read the reviewed protected stores.
 - [ ] Verify cloud/local status for Messages, Mail, Notes, Voice Memos,
       contacts, calendars, reminders, MobileSync backups, and Keychain.
-- [ ] Select only required local Apple stores for encrypted backup.
-- [ ] Confirm `~/Library/ScreenRecordings` is included.
+- [x] Choose no Apple local-state archive; require cloud verification instead.
+- [x] Confirm `~/Library/ScreenRecordings` is included in `app-state`.
 
 ## OpenCode Preparation
 
@@ -97,33 +98,34 @@ them complete automatically without validation.
 
 ## Zed and Codex Agent Preparation
 
-- [ ] Record final Zed and Codex versions.
-- [ ] Inventory native Zed Agent thread count.
-- [ ] Inventory Zed sidebar entries by agent owner.
-- [ ] Inventory Codex thread-index and session-file counts.
-- [ ] Quit Zed and stop every Codex/ACP process.
-- [ ] Create consistent backups of native and stable Zed databases.
-- [ ] Export native Zed rows as encrypted portable JSON and metadata.
-- [ ] Create a curated Codex state archive with auth reserved for emergency
+- [x] Record final Zed and Codex versions.
+- [x] Inventory native Zed Agent thread count.
+- [x] Inventory Zed sidebar entries by agent owner.
+- [x] Inventory Codex thread-index and session-file counts.
+- [x] Quit Zed and stop every Codex/ACP process.
+- [x] Create consistent backups of native and stable Zed databases.
+- [x] Export native Zed rows as encrypted portable JSON and metadata.
+- [x] Create a curated Codex state archive with auth reserved for emergency
       recovery only.
-- [ ] Run integrity checks on every copied Zed and Codex database.
+- [x] Run integrity checks on every copied Zed and Codex database.
 - [ ] Record every old-home path that requires migration.
-- [ ] Verify Zed and Codex archives after remote download.
+- [x] Verify Zed and Codex archives through complete remote checksum streams.
 
 ## Backup Creation
 
 - [ ] Create the projects archive.
-- [ ] Create the workspaces archive.
-- [ ] Create the personal-data archive.
-- [ ] Create the downloads archive.
-- [ ] Create one archive per browser.
-- [ ] Create the application-state archive.
-- [ ] Create the selected developer-history archive.
-- [ ] Create the encrypted Raycast emergency archive.
-- [ ] Create the selected Apple local-state archive, if required.
-- [ ] Create the native Zed Agent archive.
-- [ ] Create the Codex agent archive.
-- [ ] Create the credentials archive.
+- [x] Create the workspaces archive.
+- [x] Create the personal-data archive.
+- [x] Create the downloads archive.
+- [x] Create raw archives for Chrome, Edge, Firefox, Arc, and Brave; Safari is
+      intentionally sync-only.
+- [x] Create the application-state archive.
+- [x] Create the selected developer-history archive.
+- [x] Create the encrypted Raycast emergency archive.
+- [x] Confirm no Apple local-state archive is required by the selected scope.
+- [x] Create the native Zed Agent archive.
+- [x] Create the Codex agent archive.
+- [x] Create the credentials archive.
 - [ ] Record source sizes, file counts, archive sizes, and SHA-256 checksums.
 - [ ] Upload every archive with rclone.
 - [ ] Confirm there are no Google Drive or rclone errors.

@@ -49,7 +49,8 @@ real download/decryption test are blocking erase requirements.
 - `~/Pictures`
 - `~/Movies`
 - `~/Music`
-- Browser history and settings for every existing browser
+- Raw encrypted history/settings for Chrome, Edge, Firefox, Arc, and Brave;
+  Safari uses supported synchronization only
 - OpenCode sessions and selected OpenCode state
 - Native Zed Agent threads and Zed thread metadata
 - Codex sessions needed by Zed's external-agent Thread History
@@ -59,7 +60,7 @@ real download/decryption test are blocking erase requirements.
 - Lazygit recent-repository and UI state
 - An encrypted Raycast emergency copy
 - `~/Library/ScreenRecordings`
-- Apple local/protected data that remains important after verifying cloud sync
+- Apple local/protected raw state is skipped; cloud verification is required
 - Selected application-created data described in `backup.md`
 - SSH and GPG credentials, encrypted separately
 
@@ -198,8 +199,9 @@ Do not dump and replay entire preference domains.
 - Rely on WhatsApp and Zalo account/cloud recovery rather than archiving their
   approximately 5.5 GB of local state.
 - Verify Messages, Mail, Notes, Voice Memos, contacts, calendars, reminders,
-  local device backups, and iCloud Keychain. Archive only protected/local data
-  that is not safely synchronized.
+  local device backups, and iCloud Keychain. This run intentionally creates no
+  raw Apple local-state archive and therefore cannot erase until cloud recovery
+  is accepted.
 - Preserve `~/Library/ScreenRecordings`; do not preserve custom fonts,
   keyboard layouts, or unidentified sandboxed app Documents.
 - Keep `~/zmk-config` and `~/Exercism` excluded as previously decided.

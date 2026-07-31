@@ -55,8 +55,6 @@ Completed in this stage:
 Not completed yet:
 
 - Remaining direct backup archives and the final verification manifest.
-- Dynamic Kanata LaunchDaemon generation for the new home path.
-- Active Fish cleanup and mise activation.
 - OpenCode, Zed Agent, and Codex final state backup.
 - Software installation, restore execution, or system reset.
 

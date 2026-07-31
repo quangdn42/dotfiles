@@ -222,9 +222,10 @@ as-is preservation.
 
 ## Browser State
 
-Preserve history and settings for Safari, Chrome, Edge, Firefox, Arc, and any
-Brave profile that still exists. Edge is archived even though it will not be
-reinstalled automatically.
+Preserve raw encrypted history and settings for Chrome, Edge, Firefox, Arc, and
+the existing Brave profile. Edge is archived even though it will not be
+reinstalled automatically. Safari raw state was explicitly skipped for this
+run; verify its supported synchronization before erase.
 
 | Browser | Primary state |
 | --- | --- |
@@ -232,7 +233,7 @@ reinstalled automatically.
 | Edge | `~/Library/Application Support/Microsoft Edge` and its preferences |
 | Firefox | `~/Library/Application Support/Firefox` |
 | Arc | `~/Library/Application Support/Arc` and its preferences |
-| Safari | Safari library, container, and group-container state |
+| Safari | Sync only; no raw archive in this run |
 | Brave | Existing Brave profile directories, if present |
 
 Before copying browser data:
@@ -241,8 +242,7 @@ Before copying browser data:
 2. Export bookmarks separately.
 3. Record installed extensions.
 4. Quit every browser completely.
-5. Grant the backup terminal Full Disk Access for Safari data.
-6. Exclude disposable browser cache directories while retaining profiles,
+5. Exclude disposable browser cache directories while retaining profiles,
    history databases, bookmarks, preferences, extensions, favicons, and
    session metadata.
 
@@ -292,9 +292,9 @@ the raw archive only to recover a specific missing item.
 
 ## Apple Protected Data
 
-Grant the backup terminal Full Disk Access for the verification and backup
-stage. Check cloud/account settings before deciding which local stores enter
-`apple-local-state.tar.zst.age`:
+Grant the backup terminal Full Disk Access for verification. This run skips
+`apple-local-state.tar.zst.age` by explicit choice, so check cloud/account
+recovery for:
 
 - Messages and attachments
 - Mail, especially On My Mac, POP, local drafts, and Mail Downloads

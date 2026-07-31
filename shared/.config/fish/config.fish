@@ -27,9 +27,6 @@ if status is-interactive
 	abbr --add la lsd -lA
 	abbr --add lg lazygit
 	abbr --add cl curlie
-	abbr --add wtt wezterm cli set-tab-title
-	abbr --add wwt wezterm cli rename-workspace
-	abbr --add gdoc 'stdsym | fzf --preview "go doc \$(echo {})" | xargs go doc'
 	abbr --add j jj
 	abbr --add js jj st
 	abbr --add je jj edit

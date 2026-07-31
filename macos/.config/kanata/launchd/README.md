@@ -11,8 +11,7 @@ LaunchDaemons should be owned by `root:wheel`, not a user-writable repository.
 ## Prerequisites
 
 - Kanata is installed at `/opt/homebrew/bin/kanata`.
-- The config is available at
-  `/Users/quang-dang/.config/kanata/macbook.kbd`.
+- The config is available at `$HOME/.config/kanata/macbook.kbd`.
 - The Mac has network access to download the VirtualHID package from GitHub.
 
 ## Install or Update
@@ -26,6 +25,8 @@ From this directory, run:
 The script includes the VirtualHID installation from step 2 of Kanata's macOS
 setup. It:
 
+- Generates the installed Kanata plist from the active user's `$HOME`. Set
+  `KANATA_CONFIG` to override the config path.
 - Selects VirtualHID 6.2.0 for Kanata versions before 1.13.0.
 - Selects VirtualHID 8.0.0 for Kanata 1.13.0 and newer.
 - Downloads the release package only when the compatible version is absent.

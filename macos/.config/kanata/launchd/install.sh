@@ -19,7 +19,7 @@ kanata_destination="$destination_dir/$kanata_label.plist"
 vhid_destination="$destination_dir/$vhid_label.plist"
 
 kanata_binary=/opt/homebrew/bin/kanata
-kanata_config=/Users/quang-dang/.config/kanata/macbook.kbd
+kanata_config=${KANATA_CONFIG:-"$HOME/.config/kanata/macbook.kbd"}
 vhid_binary='/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon'
 vhid_info='/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/Info.plist'
 vhid_manager='/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager'
@@ -27,11 +27,14 @@ vhid_extension_info='/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Conte
 vhid_extension_id=org.pqrs.Karabiner-DriverKit-VirtualHIDDevice
 
 package_path=
+generated_kanata_plist=
 
 fail() {
     printf 'Error: %s\n' "$1" >&2
     exit 1
 }
+
+[ "$(id -u)" -ne 0 ] || fail "Run this script as the target user, not with sudo"
 
 bootout_if_loaded() {
     label=$1
@@ -44,6 +47,9 @@ bootout_if_loaded() {
 cleanup() {
     if [ -n "$package_path" ]; then
         rm -f "$package_path"
+    fi
+    if [ -n "$generated_kanata_plist" ]; then
+        rm -f "$generated_kanata_plist"
     fi
 }
 
@@ -80,6 +86,13 @@ trap 'exit 1' HUP INT TERM
 
 plutil -lint "$kanata_source" >/dev/null
 plutil -lint "$vhid_source" >/dev/null
+
+generated_kanata_plist=$(mktemp /tmp/kanata-plist.XXXXXX)
+cp "$kanata_source" "$generated_kanata_plist"
+/usr/libexec/PlistBuddy -c \
+    "Set :ProgramArguments:2 $kanata_config" \
+    "$generated_kanata_plist"
+plutil -lint "$generated_kanata_plist" >/dev/null
 
 kanata_version=$("$kanata_binary" --version)
 kanata_version=${kanata_version##* }
@@ -142,7 +155,7 @@ fi
 [ -x "$vhid_binary" ] || fail "VirtualHID daemon is not executable at $vhid_binary"
 
 # Copy instead of symlinking so privileged launchd definitions are root-owned.
-sudo install -o root -g wheel -m 0644 "$kanata_source" "$kanata_destination"
+sudo install -o root -g wheel -m 0644 "$generated_kanata_plist" "$kanata_destination"
 sudo install -o root -g wheel -m 0644 "$vhid_source" "$vhid_destination"
 
 # Stop dependents first, then start the dependency first.
