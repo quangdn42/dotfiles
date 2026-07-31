@@ -198,6 +198,238 @@ After all category archives are complete:
 7. Complete every item under **Erase Gate** in `checklist.md`.
 8. Stop for explicit approval.
 
+### Final OpenCode Capture
+
+Run this only after finishing and closing every OpenCode TUI, server, and
+agent. Use a normal Fish terminal. First restore the backup variables and
+confirm no OpenCode process remains:
+
+```fish
+set -gx RUN_ID "20260731T185734Z-Quangs-MacBook-Air"
+set -gx RUN_DIR "$HOME/reinstall-staging/$RUN_ID"
+set -gx BACKUP_REMOTE "gdrive:mac-reinstall/$RUN_ID"
+set -gx AGE_IDENTITY "$HOME/.config/age/reinstall-key.txt"
+set -gx AGE_RECIPIENT "age10h93te23flq6a6uhvh4s5k83r44xdrvxx7zwdd2zja6hx0cyl3xs2vcxxr"
+set -gx OPENCODE_DB (opencode db path)
+set -gx OPENCODE_STAGE "$RUN_DIR/opencode-final-plaintext"
+
+pgrep -ifl opencode
+```
+
+The final command must produce no output. Stop if it finds a process. Create a
+new private staging directory:
+
+```fish
+test ! -e "$OPENCODE_STAGE"
+mkdir -p "$OPENCODE_STAGE/exports" "$OPENCODE_STAGE/raw"
+chmod 700 "$OPENCODE_STAGE"
+```
+
+Inventory every session directly from the database. `opencode session list`
+shows only the current project and is not sufficient:
+
+```fish
+sqlite3 -readonly -json "$OPENCODE_DB" '
+SELECT
+  s.id,
+  s.project_id,
+  s.parent_id,
+  s.directory,
+  s.title,
+  s.version,
+  s.time_created,
+  s.time_updated,
+  p.worktree AS project_worktree
+FROM session AS s
+LEFT JOIN project AS p ON p.id = s.project_id
+ORDER BY s.time_updated;
+' > "$OPENCODE_STAGE/sessions.json"
+```
+
+Export and validate every session, including this planning session:
+
+```fish
+for session_id in (jq -r '.[].id' "$OPENCODE_STAGE/sessions.json")
+    opencode export "$session_id" \
+        > "$OPENCODE_STAGE/exports/$session_id.json"
+    jq -e --arg id "$session_id" \
+        '.info.id == $id and (.messages | type == "array")' \
+        "$OPENCODE_STAGE/exports/$session_id.json" >/dev/null
+    set export_sha (shasum -a 256 \
+        "$OPENCODE_STAGE/exports/$session_id.json" | /usr/bin/cut -d ' ' -f 1)
+    jq -cn --arg id "$session_id" --arg sha256 "$export_sha" \
+        '{session_id:$id,sha256:$sha256}' \
+        >> "$OPENCODE_STAGE/export-checksums.ndjson"
+end
+
+jq -s '.' "$OPENCODE_STAGE/export-checksums.ndjson" \
+    > "$OPENCODE_STAGE/export-checksums.json"
+
+set expected_sessions (jq 'length' "$OPENCODE_STAGE/sessions.json")
+set exported_sessions (/usr/bin/find "$OPENCODE_STAGE/exports" \
+    -name '*.json' -type f | /usr/bin/wc -l | string trim)
+test "$expected_sessions" = "$exported_sessions"
+jq -e '.[] | select(.id == "ses_047ae23afffeede1j1z00c1vYn")' \
+    "$OPENCODE_STAGE/sessions.json" >/dev/null
+```
+
+Build the encrypted portable export archive:
+
+```fish
+set opencode_version (opencode --version)
+set dotfiles_commit (git -C "$HOME/projects/dotfiles" rev-parse HEAD)
+set dotfiles_branch (git -C "$HOME/projects/dotfiles" branch --show-current)
+
+jq -n \
+    --slurpfile sessions "$OPENCODE_STAGE/sessions.json" \
+    --slurpfile checksums "$OPENCODE_STAGE/export-checksums.json" \
+    --arg created_at (date -u '+%Y-%m-%dT%H:%M:%SZ') \
+    --arg opencode_version "$opencode_version" \
+    --arg planning_session_id "ses_047ae23afffeede1j1z00c1vYn" \
+    --arg dotfiles_commit "$dotfiles_commit" \
+    --arg dotfiles_branch "$dotfiles_branch" \
+    '{
+      format_version:1,
+      created_at:$created_at,
+      opencode_version:$opencode_version,
+      planning_session_id:$planning_session_id,
+      dotfiles:{commit:$dotfiles_commit,branch:$dotfiles_branch},
+      sessions:$sessions[0],
+      export_checksums:$checksums[0]
+    }' > "$OPENCODE_STAGE/manifest.json"
+
+tar -C "$OPENCODE_STAGE" -cpf - manifest.json exports \
+    | zstd --threads=0 --quiet --stdout \
+    | age --recipient "$AGE_RECIPIENT" \
+        --output "$RUN_DIR/opencode-exports.tar.zst.age"
+
+cd "$RUN_DIR"
+shasum -a 256 opencode-exports.tar.zst.age \
+    > opencode-exports.tar.zst.age.sha256
+age --decrypt --identity "$AGE_IDENTITY" opencode-exports.tar.zst.age \
+    | zstd --decompress --quiet --stdout \
+    | tar -tf - >/dev/null
+```
+
+Create a consistent raw emergency snapshot. Authentication is included only in
+this encrypted fallback and must not be restored by default:
+
+```fish
+sqlite3 "$OPENCODE_DB" \
+    ".backup '$OPENCODE_STAGE/raw/opencode.db'"
+test (sqlite3 "$OPENCODE_STAGE/raw/opencode.db" \
+    'PRAGMA integrity_check;') = ok
+
+rsync -a "$HOME/.local/share/opencode/storage" \
+    "$HOME/.local/share/opencode/snapshot" \
+    "$HOME/.local/share/opencode/tool-output" \
+    "$HOME/.local/share/opencode/auth.json" \
+    "$OPENCODE_STAGE/raw/"
+
+tar -C "$OPENCODE_STAGE" -cpf - raw \
+    | zstd --threads=0 --quiet --stdout \
+    | age --recipient "$AGE_RECIPIENT" \
+        --output "$RUN_DIR/opencode-raw.tar.zst.age"
+
+cd "$RUN_DIR"
+shasum -a 256 opencode-raw.tar.zst.age \
+    > opencode-raw.tar.zst.age.sha256
+age --decrypt --identity "$AGE_IDENTITY" opencode-raw.tar.zst.age \
+    | zstd --decompress --quiet --stdout \
+    | tar -tf - >/dev/null
+```
+
+Create metadata, upload both archives, and compare complete remote streams:
+
+```fish
+set exports_sha (/usr/bin/cut -d ' ' -f 1 \
+    opencode-exports.tar.zst.age.sha256)
+set raw_sha (/usr/bin/cut -d ' ' -f 1 \
+    opencode-raw.tar.zst.age.sha256)
+
+jq -n --arg archive 'opencode-exports.tar.zst.age' \
+    --arg created_at (date -u '+%Y-%m-%dT%H:%M:%SZ') \
+    --arg opencode_version "$opencode_version" \
+    --arg planning_session_id 'ses_047ae23afffeede1j1z00c1vYn' \
+    --arg dotfiles_commit "$dotfiles_commit" \
+    --arg sha256 "$exports_sha" \
+    --argjson sessions "$exported_sessions" \
+    --argjson archive_bytes (stat -f '%z' opencode-exports.tar.zst.age) \
+    '{archive:$archive,created_at:$created_at,opencode_version:$opencode_version,
+      planning_session_id:$planning_session_id,dotfiles_commit:$dotfiles_commit,
+      sessions:$sessions,archive_bytes:$archive_bytes,sha256:$sha256}' \
+    > opencode-exports.metadata.json
+
+jq -n --arg archive 'opencode-raw.tar.zst.age' \
+    --arg created_at (date -u '+%Y-%m-%dT%H:%M:%SZ') \
+    --arg opencode_version "$opencode_version" \
+    --arg sha256 "$raw_sha" \
+    --argjson archive_bytes (stat -f '%z' opencode-raw.tar.zst.age) \
+    '{archive:$archive,created_at:$created_at,opencode_version:$opencode_version,
+      sqlite_integrity:"ok",auth_restore_default:false,
+      archive_bytes:$archive_bytes,sha256:$sha256}' \
+    > opencode-raw.metadata.json
+
+for base in opencode-exports opencode-raw
+    rclone copyto "$base.tar.zst.age" \
+        "$BACKUP_REMOTE/$base.tar.zst.age"
+    rclone copyto "$base.tar.zst.age.sha256" \
+        "$BACKUP_REMOTE/$base.tar.zst.age.sha256"
+    rclone copyto "$base.metadata.json" \
+        "$BACKUP_REMOTE/$base.metadata.json"
+    set local_sha (/usr/bin/cut -d ' ' -f 1 \
+        "$base.tar.zst.age.sha256")
+    set remote_sha (rclone cat "$BACKUP_REMOTE/$base.tar.zst.age" \
+        | shasum -a 256 | /usr/bin/cut -d ' ' -f 1)
+    test "$local_sha" = "$remote_sha"
+end
+```
+
+### Final Manifest
+
+Build checksums only from archives that have verified metadata. This excludes
+the failed local Safari artifact:
+
+```fish
+cd "$RUN_DIR"
+
+begin
+    for metadata in *.metadata.json
+        set archive (jq -r '.archive' "$metadata")
+        shasum -a 256 "$archive"
+    end
+end > SHA256SUMS
+
+jq -s \
+    --arg format_version '1' \
+    --arg run_id "$RUN_ID" \
+    --arg created_at (date -u '+%Y-%m-%dT%H:%M:%SZ') \
+    --arg source_home "$HOME" \
+    --arg target_home '/Users/quangdn' \
+    --arg age_recipient "$AGE_RECIPIENT" \
+    --arg dotfiles_commit (git -C "$HOME/projects/dotfiles" rev-parse HEAD) \
+    '{
+      format_version:($format_version|tonumber),
+      run_id:$run_id,
+      created_at:$created_at,
+      source_home:$source_home,
+      target_home:$target_home,
+      age_recipient:$age_recipient,
+      dotfiles_commit:$dotfiles_commit,
+      archives:sort_by(.archive)
+    }' *.metadata.json > manifest.json
+
+test (jq '.archives | length' manifest.json) = \
+    (/usr/bin/wc -l < SHA256SUMS | string trim)
+
+rclone copyto SHA256SUMS "$BACKUP_REMOTE/SHA256SUMS"
+rclone copyto manifest.json "$BACKUP_REMOTE/manifest.json"
+rclone lsf "$BACKUP_REMOTE"
+```
+
+Do not remove the plaintext export staging or erase the Mac until the final
+remote objects and representative restores have been independently checked.
+
 ## Part II: Restore on the Fresh Mac
 
 ## 1. Reset and Setup Assistant
