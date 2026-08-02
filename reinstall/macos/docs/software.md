@@ -9,8 +9,8 @@ application unavailable through either source.
 
 The declarations are split so the base install can run before App Store login:
 
-- [`../../Brewfile`](../../Brewfile): taps, formulae, fonts, and casks.
-- [`../../Brewfile.mas`](../../Brewfile.mas): App Store-only fallback apps.
+- [`Brewfile`](../../../Brewfile): taps, formulae, fonts, and casks.
+- [`Brewfile.mas`](../../../Brewfile.mas): App Store-only fallback apps.
 
 ## Tool Ownership
 
@@ -18,7 +18,8 @@ The declarations are split so the base install can run before App Store login:
 | --- | --- |
 | Homebrew | Native CLI tools, backup tools, fonts, and macOS applications |
 | mas | Selected App Store-only applications |
-| mise | Global Python 3.12, Go 1.26, shared Go tools, and project runtimes |
+| uv | Python runtimes, project environments, dependencies, and Python tools |
+| mise | Go 1.26, shared Go tools, and project non-Python runtimes |
 | Mason | Missing system-tool fallbacks and editor-private debug adapters |
 | Fisher | Fish plugins and Tide |
 | lazy.nvim | Plugins for both Neovim configurations |
@@ -34,7 +35,7 @@ has an explicit, documented version requirement.
 | Shell and navigation | `fish`, `fzf`, `lsd`, `zoxide` |
 | Files and preview | `bat`, `fd`, `ffmpegthumbnailer`, `p7zip`, `poppler`, `ripgrep`, `unar`, `yazi` |
 | Version control | `git`, `git-delta`, `gh`, `jj`, `lazygit` |
-| Development utilities | `curlie`, `hurl`, `hyperfine`, `jq`, `just`, `showkey`, `tokei`, `uv`, `wget` |
+| Development utilities and Python management | `curlie`, `hurl`, `hyperfine`, `jq`, `just`, `showkey`, `tokei`, `uv`, `wget` |
 | Shared editor tooling | `lua-language-server`, `marksman`, `pyright`, `ruff`, `shfmt`, `sql-formatter`, `stylua`, `tree-sitter-cli`, `yaml-language-server`, `yamlfmt` |
 | Editors and configuration | `neovim`, `stow` |
 | Machine setup | `kanata`, `mas`, `mise` |
@@ -50,18 +51,19 @@ preview and archive workflows rather than installed as incidental dependencies.
 | Terminals and development | `codex`, `ghostty`, `visual-studio-code`, `zed` |
 | Browsers | `arc`, `firefox`, `google-chrome` |
 | Communication | `discord`, `whatsapp`, `zalo`, `zoom` |
-| Security and sync | `bitwarden`, `google-drive`, `tailscale-app` |
+| Security and sync | `google-drive`, `tailscale-app` |
 | Workflow | `appcleaner`, `flashspace`, `gonhanh`, `lunar`, `mac-mouse-fix`, `raycast`, `shottr`, `swish` |
 | Media and creative | `gimp`, `iina`, `obs`, `spotify`, `steam` |
 | Fonts | `font-ibm-plex-mono`, `font-jetbrains-mono-nerd-font` |
 
-Bitwarden, Lunar, and WhatsApp deliberately use Homebrew even though App Store
+Lunar and WhatsApp deliberately use Homebrew even though App Store
 versions exist.
 
 ## App Store Fallback
 
 | Application | App Store ID |
 | --- | ---: |
+| Bitwarden | `1352778147` |
 | Gifski | `1351639930` |
 | Magic Battery | `1240063289` |
 | uBlock Origin Lite | `6745342698` |
@@ -105,5 +107,5 @@ may remain in the repository.
 5. Install TinkerTool from its verified vendor source if still needed.
 6. Complete application logins, licensing, and macOS privacy approvals.
 
-The future bootstrap must be idempotent and must not call `brew cleanup` on the
-old system as part of backup preparation.
+The resumable bootstrap must be idempotent and must not call `brew cleanup` on
+either the old or rebuilt system.

@@ -27,6 +27,7 @@ vhid_extension_info='/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Conte
 vhid_extension_id=org.pqrs.Karabiner-DriverKit-VirtualHIDDevice
 
 package_path=
+package_dir=
 generated_kanata_plist=
 
 fail() {
@@ -44,9 +45,17 @@ bootout_if_loaded() {
     fi
 }
 
+open_permission_settings() {
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" || :
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent" || :
+}
+
 cleanup() {
     if [ -n "$package_path" ]; then
         rm -f "$package_path"
+    fi
+    if [ -n "$package_dir" ]; then
+        rmdir "$package_dir" 2>/dev/null || :
     fi
     if [ -n "$generated_kanata_plist" ]; then
         rm -f "$generated_kanata_plist"
@@ -54,7 +63,8 @@ cleanup() {
 }
 
 install_vhid() {
-    package_path=$(mktemp /tmp/kanata-vhid.XXXXXX)
+    package_dir=$(mktemp -d /tmp/kanata-vhid.XXXXXX)
+    package_path="$package_dir/Karabiner-DriverKit-VirtualHIDDevice-$vhid_version.pkg"
 
     printf 'Downloading VirtualHID %s...\n' "$vhid_version"
     curl --fail --location --show-error \
@@ -75,6 +85,8 @@ install_vhid() {
 
     rm -f "$package_path"
     package_path=
+    rmdir "$package_dir"
+    package_dir=
 }
 
 trap cleanup 0
@@ -124,6 +136,9 @@ if [ -r "$vhid_info" ]; then
     installed_vhid_version=$(plutil -extract CFBundleShortVersionString raw -o - "$vhid_info" 2>/dev/null || :)
 fi
 
+# Register the binary in macOS Accessibility before installing the daemon.
+"$kanata_binary" --macos-request-permissions || :
+
 sudo -v
 
 if [ "$installed_vhid_version" != "$vhid_version" ] || [ ! -x "$vhid_binary" ] || [ ! -x "$vhid_manager" ]; then
@@ -166,5 +181,23 @@ sudo launchctl bootstrap system "$kanata_destination"
 
 sudo launchctl print "system/$vhid_label" >/dev/null
 sudo launchctl print "system/$kanata_label" >/dev/null
+
+# A loaded job can still be crash-looping because macOS privacy permission is
+# missing. Verify the steady state after the driver has had time to initialize.
+sleep 8
+vhid_status=$(sudo launchctl print "system/$vhid_label" 2>/dev/null || :)
+kanata_status=$(sudo launchctl print "system/$kanata_label" 2>/dev/null || :)
+
+printf '%s\n' "$vhid_status" | grep -Eq '^[[:space:]]*state = running$' || \
+    fail "VirtualHID launch daemon did not remain running"
+
+if ! printf '%s\n' "$kanata_status" | grep -Eq '^[[:space:]]*state = running$'; then
+    open_permission_settings
+    printf '%s\n' \
+        "Kanata did not remain running." \
+        "Add and enable $kanata_binary under both Accessibility and Input Monitoring," \
+        "then rerun this installer." >&2
+    exit 1
+fi
 
 printf '%s\n' "Installed and loaded $vhid_label and $kanata_label."

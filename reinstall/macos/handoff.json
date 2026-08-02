@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "runtime_router",
+  "phase": "inspect_runtime",
+  "status": "always_current",
+  "next_action": {
+    "id": "route_run_intent",
+    "owner": "human",
+    "command": "If active-run exists, run status. If this is the source Mac, initialize a new run. If this is a fresh post-erase Mac, resume the remote run with its independently stored manifest digest. Ask the human which case applies when runtime state is absent.",
+    "procedure": "reinstall/macos/README.md#start-here"
+  },
+  "read_set": [
+    "reinstall/macos/README.md"
+  ],
+  "invariants": [
+    "Generated run.json and receipts, not this router, hold live execution state.",
+    "Never erase, delete, or overwrite restored data without explicit human approval.",
+    "Never modify original encrypted archives.",
+    "Never overwrite the fresh dotfiles clone from a projects archive.",
+    "Reauthenticate by default; do not restore old tokens.",
+    "The current home must match the authenticated manifest target before restore."
+  ],
+  "history": "reinstall/macos/docs/history/20260731T185734Z-Quangs-MacBook-Air.md"
+}

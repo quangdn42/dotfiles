@@ -1,5 +1,6 @@
 # App Store fallbacks with no maintained Homebrew cask.
 # Sign in to the Mac App Store before applying this file.
+mas "Bitwarden", id: 1352778147
 mas "Gifski", id: 1351639930
 mas "Magic Battery", id: 1240063289
 mas "uBlock Origin Lite", id: 6745342698

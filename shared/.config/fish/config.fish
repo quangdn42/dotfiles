@@ -7,9 +7,10 @@ end
 set -gx BAT_THEME ansi
 
 # PATH
-if not contains -- $HOME/.local/bin $PATH
-    set -gx PATH $PATH $HOME/.local/bin
+if set -l local_bin_index (contains -i -- $HOME/.local/bin $PATH)
+    set -e PATH[$local_bin_index]
 end
+set -gx PATH $HOME/.local/bin $PATH
 
 if type -q mise
     mise activate fish | source

@@ -4,6 +4,7 @@ tap "anomalyco/tap"
 # Backup and restore
 brew "age"
 brew "rclone"
+brew "rsync"
 brew "zstd"
 
 # Shell and navigation
@@ -86,7 +87,6 @@ cask "zalo"
 cask "zoom"
 
 # Security and sync
-cask "bitwarden"
 cask "google-drive"
 cask "tailscale-app"
 

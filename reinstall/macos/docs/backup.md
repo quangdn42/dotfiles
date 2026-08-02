@@ -8,6 +8,11 @@ The internal disk is the erase target and cannot also be the backup. Selected
 data is staged into logical compressed archives, encrypted with age, uploaded
 to Google Drive with rclone, and verified before reset.
 
+The authoritative scope and disposition of every category is
+[`config/archives.json`](../config/archives.json).
+This document explains rationale and manual recovery; do not duplicate mutable
+source lists here.
+
 Google Drive is currently the only backup provider. No erase is allowed unless
 remote validation and a real download/decryption test succeed.
 
@@ -39,108 +44,28 @@ per 64 KiB chunk, or about 0.024%, plus a small recipient header. This is about
 2.5 MB for a 10 GB archive or 10 MB for a 40 GB archive.
 
 Encryption adds CPU work, but on this Mac it should normally be faster than the
-Google Drive upload and comparable to or faster than compression. The backup
-script will benchmark the actual pipeline before creating final archives.
+Google Drive upload and comparable to or faster than compression. The reinstall
+script records actual source and archive sizes for every run.
 Skipping age would save little time or disk space while exposing browser,
 OpenCode, project, and credential data to the cloud account and its
 administrators. Encryption therefore remains required.
 
-### Observed Space Candidates
+### Space And Cleanup
 
-These sizes were observed on 2026-07-31 and will change. They are listed to
-avoid deleting retained data merely to make room for backup staging.
+Do not reuse disk-space observations or destructive commands from an earlier
+machine. Application sizes, caches, and retained scope change between runs.
 
-| Candidate | Observed size | Handling |
-| --- | ---: | --- |
-| Steam installed games under `steamapps` | 17 GB | Uninstall games through Steam after confirming Steam Cloud; preserve `userdata` |
-| `~/.orbstack` | 8.1 GB | Remove through OrbStack because local infrastructure was excluded |
-| Microsoft Office application bundles | 6.3 GB | Remove the applications; Office was excluded from reinstall |
-| `~/.npm` | 3.6 GB | Remove package-manager cache after confirming it contains no intentional local package source |
-| `~/.cache` | 2.0 GB | Regenerable, but inspect before deleting the directory broadly |
-| `~/.rustup` | 1.2 GB | Remove installed toolchains because Rust will be project-scoped through mise |
-| Microsoft Edge application bundle | 1.1 GB | Remove only the app bundle; retain its browser profile for backup |
-| `~/.nvm` | 1.0 GB | Remove installed Node versions because Node will be project-scoped through mise |
-| Homebrew download cache | 1.0 GB | Clear with Homebrew's supported cleanup command |
-| `~/.minikube` | 749 MB | Delete clusters through Minikube because local infrastructure was excluded |
-| Other excluded application bundles | About 830 MB | DBeaver, Antigravity, WezTerm, AeroSpace, Amethyst, and Hammerspoon |
+Use `reinstall cleanup plan` for project/workspace candidates and the generated
+Downloads inventory. The plan records path identity, size, reason, and checksum;
+human approval is bound to that checksum. `cleanup apply` validates every
+candidate and filesystem boundary before deleting any candidate.
 
-The candidates total more than 40 GB. Prefer application-supported uninstall
-or cleanup operations over deleting opaque support directories. Do not remove
-browser profiles, `~/.local`, Steam `userdata`, or selected user roots while
-freeing space.
+For large application-managed data outside projects, use the application's own
+uninstall or cleanup interface only after confirming its cloud/recovery state.
+Never broadly remove `~/.cache`, browser profiles, `~/.local`, Steam `userdata`,
+or selected user roots merely to make staging space.
 
-### Manual Cleanup Commands
-
-Run one block at a time and check free space after each block. These commands
-are destructive and do not create a backup.
-
-Quit OrbStack, then remove its data using the locations documented by OrbStack:
-
-```sh
-rm -rf "$HOME/.orbstack"
-rm -rf "$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack"
-```
-
-Remove the excluded Microsoft Office application bundles:
-
-```sh
-sudo rm -rf "/Applications/Microsoft Excel.app"
-sudo rm -rf "/Applications/Microsoft PowerPoint.app"
-sudo rm -rf "/Applications/Microsoft Word.app"
-```
-
-Remove npm's package cache, temporary npx installs, logs, and prebuild cache.
-This does not remove the separate `~/.npmrc` configuration file:
-
-```sh
-rm -rf "$HOME/.npm/_cacache"
-rm -rf "$HOME/.npm/_npx"
-rm -rf "$HOME/.npm/_logs"
-rm -rf "$HOME/.npm/_prebuilds"
-```
-
-The top-level `~/.cache` inventory contains only regenerable caches for the
-currently reviewed applications, including OpenCode's cache but not its session
-state under `~/.local/share/opencode`:
-
-```sh
-rm -rf "$HOME/.cache"
-```
-
-Remove rustup-managed toolchains and proxies. This also removes Rust tooling
-under `~/.cargo/bin`, including the installed `rustlings` binary:
-
-```sh
-rustup self uninstall -y
-```
-
-Remove only the Edge application. Its profile under
-`~/Library/Application Support/Microsoft Edge` remains intact for backup:
-
-```sh
-sudo rm -rf "/Applications/Microsoft Edge.app"
-```
-
-Remove NVM and its managed Node.js installations:
-
-```sh
-rm -rf "$HOME/.nvm"
-```
-
-Remove Homebrew's download cache. Homebrew recreates it when needed:
-
-```sh
-rm -rf "$HOME/Library/Caches/Homebrew"
-```
-
-Delete all Minikube profiles and purge its home directory using Minikube's
-supported command:
-
-```sh
-minikube delete --all --purge
-```
-
-Check reclaimed space:
+Check free space without changing it:
 
 ```sh
 df -h /System/Volumes/Data
@@ -148,12 +73,12 @@ df -h /System/Volumes/Data
 
 ## Archive Set
 
-Final names should include a UTC timestamp and machine identifier. The names
-below describe the logical contents.
+Use one UTC timestamped run directory with stable logical filenames. The run ID
+belongs in the directory, not in every archive filename.
 
 | Archive | Contents |
 | --- | --- |
-| `projects.tar.zst.age` | Complete `~/projects`, including `.git` and ignored files |
+| `projects.tar.zst.age` | `~/projects` including `.git` and ignored files, except the clean pushed dotfiles checkout |
 | `workspaces.tar.zst.age` | Complete `~/workspaces` |
 | `personal.tar.zst.age` | Documents, Desktop, Pictures, Movies, and Music |
 | `downloads.tar.zst.age` | Downloads, kept separate for easier later cleanup |
@@ -166,7 +91,7 @@ below describe the logical contents.
 | `raycast-state.tar.zst.age` | Encrypted emergency copy of local Raycast databases and state |
 | `apple-local-state.tar.zst.age` | Protected Apple data selected after cloud-sync verification |
 | `app-state.tar.zst.age` | Curated OBS, GIMP, Steam, ScreenRecordings, and other selected state |
-| `credentials.tar.zst.age` | SSH and GPG material with permissions preserved |
+| `credentials.tar.zst.age` | Existing SSH and GPG material with permissions preserved |
 
 Do not put the age private identity inside an archive encrypted only to that
 identity. Store the private identity in Bitwarden and test retrieval before
@@ -188,6 +113,10 @@ The `projects` and `workspaces` archives must retain symlinks, permissions,
 hidden files, uncommitted work, unpushed branches, worktrees, and repository
 metadata. Do not replace them with fresh clones during backup.
 
+Before recording metadata or creating these archives, run the reviewed cleanup
+workflow from `manual.md`. It removes only enumerated regenerable directories;
+ignored source and other project-local state remain included.
+
 The rebuilt machine should use the fresh GitHub clone of
 `~/projects/dotfiles`; avoid overwriting it with the older copy from the
 projects archive.
@@ -201,7 +130,7 @@ projects archive.
 - `~/VirtualBox VMs`
 - Homebrew cellar and caches
 - `.cache` directories
-- `node_modules` outside intentionally retained project trees
+- Reviewed project-local `node_modules` removed through the immutable cleanup plan
 - `.rustup`, `.cargo` tool downloads, `.nvm`, `.pyenv`, and language caches
 - Neovim plugin and Mason download directories
 - Firenvim configuration
@@ -216,9 +145,9 @@ projects archive.
 - Sandboxed app Documents outside explicitly retained roots
 - Trash and logs
 
-Do not use a broad exclusion against `projects` or `workspaces`; project-local
-generated files remain because those roots were explicitly selected for
-as-is preservation.
+Do not use a broad exclusion against `projects` or `workspaces`. Run the
+reviewed pre-archive cleanup first, then archive the resulting trees as-is so
+ignored source and local repository state are preserved.
 
 ## Browser State
 

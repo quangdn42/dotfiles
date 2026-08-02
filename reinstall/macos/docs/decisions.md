@@ -13,7 +13,7 @@ should not silently expand the software or restore scope.
 | Architecture | Apple Silicon (`arm64`) |
 | Observed macOS | macOS 26.5.2 at planning time |
 | Reset method | Erase All Content and Settings |
-| Existing account | `/Users/quang-dang` |
+| Existing account | Read from each run; the 2026 source was `/Users/quang-dang` |
 | New account | `/Users/quangdn` |
 | Full home restore | No |
 | Migration Assistant | Do not use |
@@ -38,6 +38,14 @@ therefore must leave the internal disk before reset.
 
 Google Drive is the only backup provider, so remote checksum validation and a
 real download/decryption test are blocking erase requirements.
+
+Every selected archive remains age-encrypted. The streaming overhead is
+negligible, the archive scopes contain mixed sensitive data, and one uniform
+pipeline is simpler and safer than classifying plaintext tiers. Reduce future
+backup scope when recovery is proven instead of removing encryption.
+
+`reinstall/macos/config/archives.json` is the authoritative archive and
+disposition definition. Generated immutable plans are the exact per-run scope.
 
 ## Retained User Data
 
@@ -72,8 +80,8 @@ real download/decryption test are blocking erase requirements.
 - `~/zmk-config`
 - OrbStack and VirtualBox state
 - Language runtime installations and caches
-- `node_modules`, Python virtual environments, Mason downloads, and editor
-  plugin downloads outside retained projects
+- Reviewed `node_modules`, Python virtual environments, build outputs, and
+  cache directories, including enumerated candidates inside retained projects
 - Firenvim configuration
 - General caches and logs
 - Whole-home and whole-`~/Library` restoration
@@ -86,8 +94,12 @@ real download/decryption test are blocking erase requirements.
   the selected roots
 
 The retained `projects` and `workspaces` trees are copied as data, including
-uncommitted files and repository metadata. Cleanup inside those roots is not
-part of the OS reset.
+uncommitted files and repository metadata. The dotfiles checkout is the sole
+project exclusion because finalization requires it to be clean, fetched, and
+identical to its pushed upstream. Before archiving, explicitly scan and remove
+only reviewed regenerable dependency, virtual-environment, build, and cache
+directories. Do not apply other broad project exclusions that could omit
+ignored source or local project state.
 
 ## Active Software Choices
 
@@ -123,9 +135,14 @@ Do not automatically install these solely because configuration exists:
 
 ## Development Runtime Policy
 
-- mise owns language runtimes.
-- Global mise config declares `python = "3.12"`, intentionally following the
-  newest available Python 3.12 patch.
+- uv owns Python installations, project environments, dependencies, and Python
+  tools. Homebrew owns the uv executable.
+- Bootstrap runs `uv python install 3.12 --default`, intentionally following the
+  newest available Python 3.12 patch and publishing `python` and `python3` in
+  `~/.local/bin`.
+- Python projects select compatible interpreters through `.python-version` or
+  `pyproject.toml` and run inside uv-managed project environments.
+- mise owns Go and project-scoped non-Python runtimes.
 - Global mise config declares the Go 1.26 track and pinned Go development tools
   used by the editor configs: `gopls`, `gofumpt`, `goimports`,
   `gomodifytags`, `impl`, and Delve.
@@ -133,17 +150,18 @@ Do not automatically install these solely because configuration exists:
   project `mise.toml` files. Homebrew may install Node.js as a dependency of
   globally shared editor tools; it is not the selected project runtime.
 - `projects/uucode/mise.toml` already declares Zig and hyperfine.
-- Projects without a mise declaration are updated only when actively used; the
-  OS bootstrap does not guess their runtime versions.
+- Projects without a runtime declaration are updated only when actively used;
+  the OS bootstrap does not guess their runtime versions.
 - Homebrew owns shared editor CLI tools when practical. Mason appends its bin
   directory to Neovim's PATH and installs only missing fallbacks or
   editor-private debug adapters.
 
 ## macOS Defaults
 
-The future defaults script should preserve these reviewed behaviors:
+The tracked defaults script preserves these reviewed behaviors:
 
 - Dock auto-hide enabled.
+- Dock auto-hide delay and animation duration set to zero.
 - Dock tile size 56.
 - Recent applications hidden in the Dock.
 - Windows minimized into the application icon.
@@ -155,7 +173,9 @@ The future defaults script should preserve these reviewed behaviors:
 - Key repeat value 5 and initial repeat value 15.
 - Press-and-hold accents disabled in favor of key repeat.
 - Trackpad tap-to-click enabled.
-- Trackpad three-finger drag enabled.
+- Trackpad three-finger drag configured manually in System Settings; do not
+  script gesture-domain values because macOS couples them to three/four-finger
+  Spaces and Mission Control gestures.
 - Screenshots saved as PNG under `~/Pictures/Screenshots`.
 
 Do not dump and replay entire preference domains.
@@ -163,8 +183,9 @@ Do not dump and replay entire preference domains.
 ## OpenCode
 
 - Preserve both portable session exports and a raw emergency state backup.
-- Use the current dotfiles session's normal portable export to resume the agent
-  before the full restore; do not create a separate handoff archive or script.
+- Use the current dotfiles session's normal portable export when an early agent
+  resume is useful. Cross-erase execution state comes from the compact tracked
+  handoff and remote `resume.json`, not from conversation inference.
 - Reauthenticate providers after reset instead of restoring credentials by
   default.
 - Record the OpenCode version during final backup.
@@ -182,8 +203,8 @@ Do not dump and replay entire preference domains.
 - Preserve Codex's own session store because Zed does not own the content of
   `codex-acp` sessions.
 - Reauthenticate Zed providers and Codex after reset.
-- Rebind all session and worktree paths from `/Users/quang-dang` to
-  `/Users/quangdn` in restore copies only.
+- Rebind session and worktree paths from the manifest's `source_home` to
+  `target_home` in restore copies only when they differ.
 - Do not restore downloaded Zed extensions, language servers, external-agent
   packages, Node runtimes, debug adapters, Prettier, or caches.
 
@@ -216,3 +237,18 @@ Do not dump and replay entire preference domains.
 - Never commit `auth.json`, rclone credentials, age identities, browser
   profiles, session exports, or generated backup manifests containing private
   paths or metadata.
+
+## Automation And Handoff
+
+- Use the resumable reinstall script for preflight, immutable cleanup planning,
+  filesystem archives, encryption, upload, remote verification, staged restore,
+  bootstrap phases, and evidence receipts.
+- Keep erase, accounts, FileVault key handling, privacy permissions, sync
+  acceptance, destructive cleanup approval, and final acceptance as human
+  gates.
+- `reinstall/macos/handoff.json` is the first agent read and names one exact next
+  action. Runtime state and detailed evidence remain outside Git.
+- A normal terminal writes remote `resume.json` during finalization so the
+  post-erase workflow does not depend on reopening the planning conversation.
+- The script must never overwrite a different remote artifact, extract directly
+  into the home, or pass a human gate noninteractively.

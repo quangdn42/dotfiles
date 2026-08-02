@@ -32,14 +32,39 @@ setup. It:
 - Downloads the release package only when the compatible version is absent.
 - Verifies the pinned SHA-256 checksum and macOS package signature.
 - Installs the package and runs the VirtualHID manager's `forceActivate`.
+- Registers Kanata for macOS Accessibility permission.
 - Installs root-owned plist copies under `/Library/LaunchDaemons`.
 - Reloads both services in dependency order.
+- Verifies both services remain running after startup. If Kanata exits because
+  a privacy permission is missing, it opens both relevant System Settings
+  panes and prints the binary path to approve.
 
 macOS does not allow scripts to approve system extensions. If approval is
 needed, the installer stops with instructions. Enable
 `org.pqrs.Karabiner-DriverKit-VirtualHIDDevice` under
 `System Settings > General > Login Items & Extensions > Driver Extensions`,
 reboot if requested, then rerun `./install.sh`.
+
+Kanata also requires both Input Monitoring and Accessibility permission for
+`/opt/homebrew/bin/kanata`. Add and enable that binary under both:
+
+- `System Settings > Privacy & Security > Input Monitoring`
+- `System Settings > Privacy & Security > Accessibility`
+
+After changing either permission, rerun `./install.sh`.
+
+Without Accessibility permission, launchd repeatedly reports `last exit code =
+1` even when Input Monitoring and VirtualHID are already enabled. Register the
+binary and open the Accessibility pane with:
+
+```sh
+/opt/homebrew/bin/kanata --macos-request-permissions || true
+open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+```
+
+If Kanata does not appear automatically, use the `+` button, press
+`Command-Shift-G`, and select `/opt/homebrew/bin/kanata`. Use the same manual
+path selection under Input Monitoring when necessary.
 
 The installer is safe to rerun after approving the extension or changing a
 plist.
@@ -50,6 +75,11 @@ Verify the jobs manually with:
 sudo launchctl print system/org.pqrs.Karabiner-VirtualHIDDevice-Daemon
 sudo launchctl print system/dev.kanata.kanata
 ```
+
+The healthy Kanata job reports `state = running`, a PID, and no prior exit.
+Test an expected remapping after installation. The plists intentionally leave
+stdout and stderr unconfigured during normal use; add temporary log paths only
+while diagnosing startup failures.
 
 ## Reload Kanata
 

@@ -1,5 +1,17 @@
 # Repository Guidance
 
+## Reinstall Work
+
+- For macOS reinstall, backup, migration, or restore work, read
+  `reinstall/macos/handoff.json` first. Use its router to inspect runtime state,
+  then follow the script's exact next action; do not infer live state from
+  unchecked Markdown checklist items or a restored agent conversation.
+- Treat `reinstall/macos/config/archives.json` as the authoritative archive
+  scope. Generated run plans and receipts are the evidence source of truth.
+- The reinstall script must stop for human gates. Never pass an account,
+  permission, erase, destructive-cleanup, or final-acceptance gate based only
+  on agent inference.
+
 ## Custom Neovim
 
 - Treat the custom Neovim configuration as the union of

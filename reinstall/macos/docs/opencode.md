@@ -3,8 +3,9 @@
 This is an OpenCode-specific reference. Start and track execution in
 [`manual.md`](manual.md).
 
-OpenCode sessions must survive the account path change from
-`/Users/quang-dang` to `/Users/quangdn`.
+OpenCode sessions must survive a reinstall and any account path change. Read
+`source_home` and `target_home` from the authenticated run manifest; the 2026
+run migrated `/Users/quang-dang` to `/Users/quangdn`, but a later run may not.
 
 ## Optional Fast-Path Session Restore
 
@@ -66,16 +67,16 @@ manifest containing:
 - Session title only inside the encrypted payload
 - Original project worktree
 - Original session directory
-- Relative directory beneath `/Users/quang-dang`
+- Relative directory beneath the run's recorded `source_home`
 - Export filename
 - Export checksum
 - OpenCode version
 - Final dotfiles branch and commit used by the restore-planning session
 
-The future export script should obtain the full session list dynamically and
-fail if any session cannot be exported. Keep unsanitized exports for actual
-recovery, but encrypt them immediately. Sanitized exports are optional audit
-artifacts and are not sufficient for exact recovery.
+The executable fallback in `manual.md` obtains the full session list
+dynamically and fails if any session cannot be exported. Keep unsanitized
+exports for actual recovery, but encrypt them immediately. Sanitized exports
+are optional audit artifacts and are not sufficient for exact recovery.
 
 OpenCode's importer assigns an imported session to the project and directory
 from which `opencode import` is run. After restoring projects, import each JSON
@@ -117,9 +118,9 @@ Before creating it:
 
 ## Raw Fallback Path Migration
 
-All observed sessions currently use `/Users/quang-dang`. A raw database restore
-therefore requires a controlled path migration in a copy of the restored
-database. Relevant columns include:
+The 2026 snapshot used `/Users/quang-dang`. A raw database restore requires a
+controlled path migration in a copy only when `source_home` differs from
+`target_home`. Relevant columns include:
 
 - `project.worktree`
 - `project_directory.directory`
@@ -127,11 +128,11 @@ database. Relevant columns include:
 - `workspace.directory`
 
 Legacy JSON under `storage` and snapshot metadata may also contain absolute
-paths. A future restore script must discover and report every old-prefix
+paths. Any raw restore helper must discover and report every old-prefix
 occurrence before changing it, replace only the exact old home prefix, run an
 integrity check, and retain the untouched database backup.
 
-Do not create `/Users/quang-dang` as a compatibility symlink.
+Do not create a compatibility symlink for an old source home.
 
 ## Validation
 

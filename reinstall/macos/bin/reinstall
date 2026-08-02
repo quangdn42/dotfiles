@@ -1,0 +1,1382 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+typeset -gr SCRIPT_DIR="${0:A:h}"
+typeset -gr MACOS_REINSTALL_ROOT="${SCRIPT_DIR:h}"
+typeset -gr DOTFILES="${REINSTALL_DOTFILES:-${MACOS_REINSTALL_ROOT:h:h}}"
+typeset -gr HOME_ROOT="${REINSTALL_HOME:-$HOME}"
+typeset -gr STATE_ROOT="${REINSTALL_STATE_ROOT:-$HOME_ROOT/.local/state/dotfiles-reinstall}"
+typeset -gr ARCHIVES_CONFIG="${REINSTALL_ARCHIVES_CONFIG:-$MACOS_REINSTALL_ROOT/config/archives.json}"
+typeset -gr HELPER="${REINSTALL_HELPER:-$MACOS_REINSTALL_ROOT/lib/reinstall_helper.py}"
+typeset -gr ACTIVE_RUN_FILE="$STATE_ROOT/active-run"
+typeset -gr HUMAN_BLOCKED_EXIT=20
+
+RUN_ID=""
+RUN_DIR=""
+RUN_FILE=""
+
+usage() {
+  cat <<'EOF'
+Usage: reinstall <command> [arguments]
+
+Run control:
+  init [run-id]                  Create a private run and select it
+  resume <remote> <manifest-sha256>
+                                Recover authenticated post-erase state
+  status                        Show current phase, next action, and human gates
+  continue                      Run the next safe action or stop at a human gate
+  doctor <pre-erase|post-erase> Check prerequisites without changing the machine
+  handoff [output]              Write a compact sanitized agent handoff
+
+Human gates:
+  gate list
+  gate pass <gate-id>
+
+Cleanup:
+  cleanup plan
+  cleanup replan
+  cleanup apply
+  cleanup verify
+
+Backup:
+  backup plan [all|archive-id]
+  backup create [all|archive-id]
+  backup register <archive-id> <archive-path>
+  backup upload [all|archive-id]
+  backup verify [all|archive-id]
+  backup finalize
+
+Restore:
+  restore download
+  restore inspect [all|archive-id]
+  restore stage [all|archive-id]
+  restore diff [all|archive-id]
+  restore apply <archive-id>
+
+Bootstrap:
+  bootstrap <tools|stow|mise|uv|defaults|verify>
+
+The script never erases the Mac, stores a secret value, restores old auth by
+default, or silently passes a human gate.
+EOF
+}
+
+die() {
+  print -u2 -- "error: $*"
+  exit 1
+}
+
+note() {
+  print -- "$*"
+}
+
+utc_now() {
+  date -u '+%Y-%m-%dT%H:%M:%SZ'
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || die "required command not found: $1"
+}
+
+validate_identifier() {
+  local value="$1"
+  [[ "$value" =~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$' ]] || die "unsafe identifier: $value"
+  [[ "$value" != "." && "$value" != ".." ]] || die "unsafe identifier: $value"
+}
+
+validate_config_basic() {
+  jq -e '
+    .schema_version == 1
+    and (.archives | type == "array" and length > 0)
+    and ([.archives[].id] | length == (unique | length))
+    and all(.archives[]; (.id | test("^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")))
+    and all(.archives[] | select(.disposition == "encrypted_archive");
+      (.filename | test("^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\\.tar\\.zst\\.age$")))
+  ' "$ARCHIVES_CONFIG" >/dev/null || die "archive configuration failed basic validation"
+}
+
+load_run() {
+  if [[ -n "${REINSTALL_RUN_ID:-}" ]]; then
+    RUN_ID="$REINSTALL_RUN_ID"
+  elif [[ -f "$ACTIVE_RUN_FILE" ]]; then
+    RUN_ID="$(<"$ACTIVE_RUN_FILE")"
+  else
+    die "no active run; use 'reinstall init' or 'reinstall resume <remote>'"
+  fi
+  validate_identifier "$RUN_ID"
+  RUN_DIR="$STATE_ROOT/runs/$RUN_ID"
+  RUN_FILE="$RUN_DIR/run.json"
+  [[ -f "$RUN_FILE" ]] || die "active run state not found: $RUN_FILE"
+}
+
+write_active_run() {
+  mkdir -p "$STATE_ROOT"
+  chmod 700 "$STATE_ROOT"
+  print -r -- "$RUN_ID" >| "$ACTIVE_RUN_FILE.partial"
+  mv "$ACTIVE_RUN_FILE.partial" "$ACTIVE_RUN_FILE"
+}
+
+require_recorded_home() {
+  local phase expected
+  phase="$(jq -er '.phase' "$RUN_FILE")"
+  if [[ "$phase" == post_erase ]]; then
+    expected="$(jq -er '.target_home' "$RUN_FILE")"
+  else
+    expected="$(jq -er '.home' "$RUN_FILE")"
+  fi
+  [[ "$HOME_ROOT" != / && "$HOME_ROOT" == "$expected" ]] || die "current home $HOME_ROOT does not match recorded $phase home $expected"
+}
+
+update_run() {
+  local temporary="$RUN_FILE.partial"
+  jq "$@" "$RUN_FILE" >| "$temporary"
+  mv "$temporary" "$RUN_FILE"
+}
+
+append_event() {
+  local action="$1"
+  local result="$2"
+  local details="${3:-}"
+  jq -cn \
+    --arg at "$(utc_now)" \
+    --arg action "$action" \
+    --arg result "$result" \
+    --arg details "$details" \
+    '{at:$at,action:$action,result:$result,details:$details}' \
+    >> "$RUN_DIR/events.ndjson"
+}
+
+release_lock() {
+  [[ -n "$RUN_DIR" && -d "$RUN_DIR/.lock" ]] || return
+  [[ -f "$RUN_DIR/.lock/pid" && "$(<"$RUN_DIR/.lock/pid")" == "$$" ]] || return
+  rm -f "$RUN_DIR/.lock/pid"
+  rmdir "$RUN_DIR/.lock"
+}
+
+acquire_lock() {
+  load_run
+  if ! mkdir "$RUN_DIR/.lock" 2>/dev/null; then
+    local owner="unknown"
+    [[ ! -f "$RUN_DIR/.lock/pid" ]] || owner="$(<"$RUN_DIR/.lock/pid")"
+    die "run is locked by process $owner; do not remove the lock until that process is confirmed stopped"
+  fi
+  print -- "$$" > "$RUN_DIR/.lock/pid"
+  trap release_lock EXIT HUP INT TERM
+}
+
+set_next() {
+  local action="$1"
+  local next="$2"
+  update_run --arg action "$action" --arg next "$next" --arg at "$(utc_now)" '
+    .next_action = $next
+    | .updated_at = $at
+    | .completed_actions = ((.completed_actions + [$action]) | unique)
+    | .status = "active"'
+  append_event "$action" passed "next=$next"
+}
+
+archive_value() {
+  local id="$1"
+  local expression="$2"
+  jq -er --arg id "$id" ".archives[] | select(.id == \$id) | $expression" "$ARCHIVES_CONFIG"
+}
+
+archive_ids() {
+  local filter="${1:-all}"
+  case "$filter" in
+    all) jq -r '[.archives[] | select(.disposition == "encrypted_archive")]
+      | sort_by(if .capture_adapter == "manual" then 2 elif .id == "projects" then 1 else 0 end)
+      | .[].id' "$ARCHIVES_CONFIG" ;;
+    *) archive_value "$filter" '.id' ;;
+  esac
+}
+
+archive_path() {
+  local id="$1"
+  print -r -- "$RUN_DIR/archives/$(archive_value "$id" '.filename')"
+}
+
+plan_path() {
+  print -r -- "$RUN_DIR/plans/archive-$1.json"
+}
+
+receipt_path() {
+  print -r -- "$RUN_DIR/receipts/$1.json"
+}
+
+remote_value() {
+  jq -er '.remote' "$RUN_FILE"
+}
+
+age_identity() {
+  jq -er '.age_identity' "$RUN_FILE"
+}
+
+age_recipient() {
+  jq -er '.age_recipient' "$RUN_FILE"
+}
+
+run_init() {
+  require_command jq
+  [[ "$HOME_ROOT" == /* && "$HOME_ROOT" != / ]] || die "source home must be an absolute non-root path"
+  local machine
+  machine="$(hostname -s | tr ' /' '--')"
+  RUN_ID="${1:-$(date -u '+%Y%m%dT%H%M%SZ')-$machine}"
+  validate_identifier "$RUN_ID"
+  RUN_DIR="$STATE_ROOT/runs/$RUN_ID"
+  RUN_FILE="$RUN_DIR/run.json"
+  [[ ! -e "$RUN_DIR" ]] || die "run already exists: $RUN_ID"
+
+  local identity="${REINSTALL_AGE_IDENTITY:-$HOME_ROOT/.config/age/reinstall-key.txt}"
+  local recipient="${REINSTALL_AGE_RECIPIENT:-}"
+  if [[ -z "$recipient" && -f "$identity" && -x "${commands[age-keygen]:-}" ]]; then
+    recipient="$(age-keygen -y "$identity")"
+  fi
+  local remote="${REINSTALL_REMOTE:-gdrive:mac-reinstall/$RUN_ID}"
+  local target_home="${REINSTALL_TARGET_HOME:-/Users/quangdn}"
+  [[ "$target_home" == /* && "$target_home" != / ]] || die "target home must be an absolute non-root path"
+
+  mkdir -p "$RUN_DIR"/{archives,checksums,conflicts,downloads,logs,plans,receipts,reports,staging,verification}
+  chmod 700 "$RUN_DIR"
+  jq -n \
+    --arg run_id "$RUN_ID" \
+    --arg created_at "$(utc_now)" \
+    --arg home "$HOME_ROOT" \
+    --arg dotfiles "$DOTFILES" \
+    --arg remote "$remote" \
+    --arg identity "$identity" \
+    --arg recipient "$recipient" \
+    --arg config "$ARCHIVES_CONFIG" \
+    --arg target_home "$target_home" \
+    '{schema_version:1,run_id:$run_id,created_at:$created_at,updated_at:$created_at,
+      phase:"pre_erase",status:"active",next_action:"doctor.pre_erase",
+      home:$home,dotfiles:$dotfiles,remote:$remote,age_identity:$identity,
+      age_recipient:$recipient,archives_config:$config,target_home:$target_home,
+      completed_actions:[],gates:{}}' > "$RUN_FILE"
+  : > "$RUN_DIR/events.ndjson"
+  write_active_run
+  append_event run.init passed "remote=$remote"
+  note "Created reinstall run: $RUN_ID"
+  note "Next: reinstall continue"
+}
+
+run_resume() {
+  require_command rclone
+  require_command jq
+  local remote="${1:-}"
+  local expected_manifest_sha="${2:-}"
+  [[ -n "$remote" && "$expected_manifest_sha" =~ '^[0-9a-f]{64}$' ]] || die "usage: reinstall resume <remote> <independently-stored-manifest-sha256>"
+  local temporary
+  temporary="$(mktemp -d "${TMPDIR:-/tmp}/reinstall-resume.XXXXXX")"
+  trap 'rm -rf "$temporary"' EXIT
+  rclone copyto "$remote/resume.json" "$temporary/resume.json"
+  RUN_ID="$(jq -er '.run_id' "$temporary/resume.json")"
+  validate_identifier "$RUN_ID"
+  rclone copyto "$remote/manifest.json" "$temporary/manifest.json"
+  rclone copyto "$remote/SHA256SUMS" "$temporary/SHA256SUMS"
+  local manifest_sha checksums_sha
+  manifest_sha="$(shasum -a 256 "$temporary/manifest.json" | cut -d ' ' -f 1)"
+  checksums_sha="$(shasum -a 256 "$temporary/SHA256SUMS" | cut -d ' ' -f 1)"
+  [[ "$manifest_sha" == "$expected_manifest_sha" ]] || die "manifest digest does not match independently stored value"
+  [[ "$manifest_sha" == "$(jq -er '.manifest_sha256' "$temporary/resume.json")" ]] || die "manifest digest does not match resume.json"
+  [[ "$checksums_sha" == "$(jq -er '.checksums_sha256' "$temporary/resume.json")" ]] || die "SHA256SUMS digest does not match resume.json"
+  [[ "$(jq -er '.remote' "$temporary/resume.json")" == "$remote" ]] || die "resume.json remote does not match requested remote"
+  [[ "$(jq -er '.run_id' "$temporary/manifest.json")" == "$RUN_ID" ]] || die "manifest run ID does not match resume.json"
+  [[ "$(jq -er '.target_home' "$temporary/manifest.json")" == "$HOME_ROOT" ]] || die "current home does not match manifest target home"
+  [[ "$(jq -er '.age_recipient' "$temporary/manifest.json")" == "$(jq -er '.age_recipient' "$temporary/resume.json")" ]] || die "age recipient mismatch"
+  jq -r '.archives[] | "\(.sha256)  \(.archive)"' "$temporary/manifest.json" | sort > "$temporary/manifest-checksums"
+  sort "$temporary/SHA256SUMS" > "$temporary/file-checksums"
+  cmp -s "$temporary/manifest-checksums" "$temporary/file-checksums" || die "manifest archive checksums do not match SHA256SUMS"
+
+  local required_commit
+  required_commit="$(jq -er '.dotfiles_commit' "$temporary/resume.json")"
+  [[ "$(jq -er '.dotfiles.commit' "$temporary/manifest.json")" == "$required_commit" ]] || die "manifest dotfiles commit does not match resume.json"
+  [[ "$(git -C "$DOTFILES" rev-parse HEAD)" == "$required_commit" ]] || die "dotfiles commit does not match resume.json"
+
+  RUN_DIR="$STATE_ROOT/runs/$RUN_ID"
+  RUN_FILE="$RUN_DIR/run.json"
+  [[ ! -e "$RUN_DIR" ]] || die "run already exists locally: $RUN_ID"
+  mkdir -p "$RUN_DIR"/{archives,checksums,conflicts,downloads,logs,plans,receipts,reports,staging,verification}
+  chmod 700 "$RUN_DIR"
+  cp "$temporary/manifest.json" "$RUN_DIR/downloads/manifest.json"
+  cp "$temporary/SHA256SUMS" "$RUN_DIR/downloads/SHA256SUMS"
+  local identity="${REINSTALL_AGE_IDENTITY:-$HOME_ROOT/.config/age/reinstall-key.txt}"
+  jq -n \
+    --slurpfile resume "$temporary/resume.json" \
+    --arg created_at "$(utc_now)" \
+    --arg home "$HOME_ROOT" \
+    --arg dotfiles "$DOTFILES" \
+    --arg identity "$identity" \
+    --arg config "$ARCHIVES_CONFIG" \
+    --arg target_home "$HOME_ROOT" \
+    '{schema_version:1,run_id:$resume[0].run_id,created_at:$created_at,updated_at:$created_at,
+      phase:"post_erase",status:"active",next_action:"gate.setup_assistant",
+      home:$home,dotfiles:$dotfiles,remote:$resume[0].remote,
+      age_identity:$identity,age_recipient:$resume[0].age_recipient,
+      archives_config:$config,target_home:$target_home,completed_actions:[],gates:{}}' > "$RUN_FILE"
+  : > "$RUN_DIR/events.ndjson"
+  cp "$temporary/resume.json" "$RUN_DIR/resume.json"
+  write_active_run
+  append_event run.resume passed "remote=$remote"
+  trap - EXIT
+  rm -rf "$temporary"
+  note "Recovered run state for $RUN_ID"
+  note "Next: retrieve the age identity, then run 'reinstall continue'"
+}
+
+doctor() {
+  local phase="${1:-pre-erase}"
+  [[ "$phase" == "pre-erase" || "$phase" == "post-erase" ]] || die "doctor phase must be pre-erase or post-erase"
+  if [[ "${REINSTALL_ALLOW_NON_DARWIN:-0}" != 1 ]]; then
+    [[ "$(uname -s)" == Darwin ]] || die "this workflow supports macOS only"
+  fi
+  [[ -f "$ARCHIVES_CONFIG" ]] || die "archive definition not found: $ARCHIVES_CONFIG"
+  require_command git
+  require_command jq
+  require_command shasum
+  validate_config_basic
+
+  if [[ "$phase" == pre-erase ]]; then
+    [[ -x "$HELPER" || -f "$HELPER" ]] || die "helper not found: $HELPER"
+    require_command python3
+    require_command age
+    require_command age-keygen
+    require_command rclone
+    require_command zstd
+    require_command tar
+    python3 "$HELPER" validate-config \
+      --config "$ARCHIVES_CONFIG" \
+      --output "$RUN_DIR/verification/archive-config.json"
+    local identity recipient
+    identity="$(age_identity)"
+    recipient="$(age_recipient)"
+    [[ -f "$identity" ]] || die "age identity not found: $identity"
+    [[ -n "$recipient" ]] || die "age recipient is empty"
+    [[ "$(age-keygen -y "$identity")" == "$recipient" ]] || die "age identity does not match recorded recipient"
+  else
+    require_command brew
+    require_command rclone
+    [[ "$HOME_ROOT" == "$(jq -er '.target_home' "$RUN_FILE")" ]] || die "current home does not match recorded target home"
+  fi
+  note "Doctor passed for $phase"
+}
+
+status() {
+  load_run
+  jq -r '
+    "Run:          \(.run_id)",
+    "Phase:        \(.phase)",
+    "Status:       \(.status)",
+    "Next action:  \(.next_action)",
+    "Remote:       \(.remote)",
+    "Human gates:",
+    (if (.gates | length) == 0 then "  none recorded"
+     else (.gates | to_entries[] | "  \(.key): \(.value.status)") end)
+  ' "$RUN_FILE"
+}
+
+gate_instructions() {
+  case "$1" in
+    recovery_accounts)
+      print -- "Verify Apple, Bitwarden, Google Drive, and GitHub recovery without relying only on this Mac."
+      ;;
+    recovery_age)
+      print -- "Retrieve the age identity from its independent store and decrypt a test archive."
+      print -- "Never record the private identity in run evidence."
+      ;;
+    cleanup_review)
+      print -- "Review the immutable cleanup plan and Downloads inventory."
+      print -- "Confirm every cache candidate is regenerable and intentional files are absent."
+      ;;
+    archive_plan_review)
+      print -- "Review every archive plan under $RUN_DIR/plans."
+      print -- "Confirm sources, exclusions, missing optional paths, counts, and application shutdowns."
+      ;;
+    agent_state)
+      print -- "Finish and close OpenCode, Zed, Codex, and related agents."
+      print -- "Create and register every required manual-capture archive using the focused procedures."
+      ;;
+    representative_restore)
+      print -- "Download representative encrypted archives into a temporary private directory, validate and extract them, open representative files/media, and run Git integrity checks."
+      ;;
+    sync_only_recovery)
+      print -- "Verify Safari and selected Apple data are recoverable through supported account/cloud synchronization."
+      print -- "If anything is local-only, stop and add an encrypted archive before erase."
+      ;;
+    erase_approval)
+      print -- "Confirm every required archive and manifest has passed local and remote verification."
+      print -- "Confirm account recovery and the age identity work independently of this Mac."
+      print -- "The script records approval only; erase remains a manual System Settings action."
+      ;;
+    setup_assistant)
+      print -- "Complete Setup Assistant, create /Users/quangdn, skip Migration Assistant, and install macOS updates."
+      ;;
+    app_store)
+      print -- "Sign in to the Mac App Store and confirm the declared App Store applications can be installed."
+      ;;
+    restore_apply)
+      print -- "Review restore conflict reports under $RUN_DIR/conflicts before copying staged data."
+      ;;
+    account_login)
+      print -- "Reauthenticate Apple, App Store, Bitwarden, Google Drive, GitHub, Tailscale, and coding providers as needed."
+      print -- "Do not restore old tokens merely because an emergency archive contains them."
+      ;;
+    browser_sync)
+      print -- "Let browser sync finish and verify bookmarks, history, settings, and extensions."
+      print -- "Consult staged raw browser profiles only for specific data still missing."
+      ;;
+    raycast_sync)
+      print -- "Configure Raycast through Sync before consulting the staged emergency state."
+      ;;
+    privacy_permissions)
+      print -- "Approve required Driver Extension, Input Monitoring, Accessibility, Screen Recording, camera, microphone, and File Provider access."
+      print -- "Verify behavior rather than inferring approval from a settings database."
+      ;;
+    agent_sessions)
+      print -- "Verify OpenCode, native Zed, and Codex counts and open representative sessions."
+      ;;
+    filevault)
+      print -- "Enable FileVault and store its new recovery key independently. Never record the key in run evidence."
+      ;;
+    final_acceptance)
+      print -- "Verify representative restored files and applications, then record a retention end date at least 90 days ahead."
+      ;;
+    *) die "unknown human gate: $1" ;;
+  esac
+}
+
+gate_next() {
+  case "$1" in
+    recovery_accounts) print -- gate.recovery_age ;;
+    recovery_age) print -- cleanup.plan ;;
+    cleanup_review) print -- cleanup.apply ;;
+    archive_plan_review) print -- backup.create ;;
+    agent_state) print -- backup.upload ;;
+    representative_restore) print -- gate.sync_only_recovery ;;
+    sync_only_recovery) print -- backup.finalize ;;
+    erase_approval) print -- awaiting_erase ;;
+    setup_assistant) print -- doctor.post_erase ;;
+    app_store) print -- bootstrap.mas ;;
+    restore_apply) print -- restore.apply ;;
+    account_login) print -- gate.browser_sync ;;
+    browser_sync) print -- gate.raycast_sync ;;
+    raycast_sync) print -- bootstrap.kanata ;;
+    privacy_permissions) print -- gate.agent_sessions ;;
+    agent_sessions) print -- gate.filevault ;;
+    filevault) print -- bootstrap.verify ;;
+    final_acceptance) print -- completed ;;
+    *) die "unknown human gate: $1" ;;
+  esac
+}
+
+gate_evidence_sha() {
+  case "$1" in
+    cleanup_review)
+      cut -d ' ' -f 1 "$RUN_DIR/plans/cleanup.json.sha256"
+      ;;
+    archive_plan_review)
+      local -a sidecars
+      sidecars=("$RUN_DIR"/plans/archive-*.json.sha256(N))
+      (( ${#sidecars[@]} > 0 )) || die "no archive plans exist"
+      for sidecar in "${sidecars[@]}"; do
+        print -r -- "$(<"$sidecar")"
+      done | sort | shasum -a 256 | cut -d ' ' -f 1
+      ;;
+    restore_apply)
+      local -a reports
+      reports=("$RUN_DIR"/conflicts/*.rsync.txt.sha256(N))
+      (( ${#reports[@]} > 0 )) || die "no restore conflict reports exist"
+      for report in "${reports[@]}"; do
+        print -r -- "$(<"$report")"
+      done | sort | shasum -a 256 | cut -d ' ' -f 1
+      ;;
+    agent_state)
+      local id archive
+      local -a sidecars
+      while IFS= read -r id; do
+        archive="$(archive_path "$id")"
+        [[ -f "$archive" && -f "$archive.sha256" ]] || die "required manual archive is not registered: $id"
+        sidecars+=("$archive.sha256")
+      done < <(jq -r '.archives[] | select(.disposition == "encrypted_archive" and .capture_adapter == "manual" and .required == true) | .id' "$ARCHIVES_CONFIG")
+      for sidecar in "${sidecars[@]}"; do
+        print -r -- "$(<"$sidecar")"
+      done | sort | shasum -a 256 | cut -d ' ' -f 1
+      ;;
+    *) print -- "" ;;
+  esac
+}
+
+gate_pass() {
+  load_run
+  local id="${1:-}"
+  [[ -n "$id" ]] || die "usage: reinstall gate pass <gate-id>"
+  local expected="gate.$id"
+  local current
+  current="$(jq -er '.next_action' "$RUN_FILE")"
+  [[ "$current" == "$expected" ]] || die "current action is $current, not $expected"
+  note ""
+  note "HUMAN REQUIRED: $id"
+  gate_instructions "$id"
+  note ""
+
+  local response=""
+  local retention_until=""
+  if [[ -t 0 ]]; then
+    if [[ "$id" == erase_approval ]]; then
+      print -n -- "Type APPROVE ERASE $RUN_ID to record approval, or press Enter to stop: "
+      read -r response
+      [[ "$response" == "APPROVE ERASE $RUN_ID" ]] || {
+        update_run --arg id "$id" '.status = "blocked_human" | .gates[$id] = {status:"pending"}'
+        exit "$HUMAN_BLOCKED_EXIT"
+      }
+      response=d
+    elif [[ "$id" == final_acceptance ]]; then
+      print -n -- "Type RETAIN UNTIL YYYY-MM-DD with a date at least 90 days ahead: "
+      read -r response
+      if [[ "$response" =~ '^RETAIN UNTIL [0-9]{4}-[0-9]{2}-[0-9]{2}$' ]]; then
+        retention_until="${response#RETAIN UNTIL }"
+        local retention_epoch minimum_epoch
+        retention_epoch="$(date -j -f '%Y-%m-%d' "$retention_until" '+%s' 2>/dev/null)" || die "invalid retention date"
+        minimum_epoch="$(date -v+90d '+%s')"
+        (( retention_epoch >= minimum_epoch )) || die "retention date must be at least 90 days ahead"
+        response=d
+      else
+        die "final acceptance requires an explicit retention date"
+      fi
+    else
+      print -n -- "[d] Done  [l] Later and stop  [q] Quit: "
+      read -r response
+    fi
+  else
+    update_run --arg id "$id" '.status = "blocked_human" | .gates[$id] = {status:"pending"}'
+    note "Run interactively, then resume with: $0 gate pass $id"
+    exit "$HUMAN_BLOCKED_EXIT"
+  fi
+
+  case "$response" in
+    d|D|done|DONE)
+      local next
+      local evidence_sha
+      next="$(gate_next "$id")"
+      evidence_sha="$(gate_evidence_sha "$id")"
+      update_run --arg id "$id" --arg at "$(utc_now)" --arg next "$next" --arg evidence_sha "$evidence_sha" --arg retention_until "$retention_until" '
+        .gates[$id] = ({status:"passed",at:$at,actor:"human",evidence_sha256:$evidence_sha}
+          + if $retention_until == "" then {} else {retention_until:$retention_until} end)
+        | if $retention_until == "" then . else .retention_until = $retention_until end
+        | .status = (if $next == "completed" then "completed" else "active" end)
+        | .next_action = $next
+        | .updated_at = $at'
+      append_event "gate.$id" passed human
+      note "Gate passed: $id"
+      note "Next: $next"
+      ;;
+    l|L|later|"")
+      update_run --arg id "$id" '.status = "blocked_human" | .gates[$id] = {status:"pending"}'
+      note "Saved. Resume with: $0 gate pass $id"
+      exit "$HUMAN_BLOCKED_EXIT"
+      ;;
+    q|Q|quit) exit 0 ;;
+    *) die "invalid gate response" ;;
+  esac
+}
+
+gate_list() {
+  load_run
+  for id in recovery_accounts recovery_age cleanup_review archive_plan_review agent_state representative_restore sync_only_recovery erase_approval setup_assistant app_store restore_apply account_login browser_sync raycast_sync privacy_permissions agent_sessions filevault final_acceptance; do
+    local current
+    current="$(jq -r --arg id "$id" '.gates[$id].status // "not_reached"' "$RUN_FILE")"
+    print -- "$id: $current"
+  done
+}
+
+cleanup_plan() {
+  load_run
+  local output="$RUN_DIR/plans/cleanup.json"
+  if [[ -f "$output" || -f "$output.sha256" ]]; then
+    [[ -f "$output" && -f "$output.sha256" ]] || die "cleanup plan is incomplete; preserve it and investigate"
+    (cd "$RUN_DIR/plans" && shasum -a 256 -c cleanup.json.sha256 >/dev/null) || die "existing cleanup plan checksum is invalid"
+    note "Cleanup plan already exists and is unchanged: $output"
+    return
+  fi
+  python3 "$HELPER" cleanup-plan --home "$HOME_ROOT" --output "$output"
+  shasum -a 256 "$output" > "$output.sha256"
+  jq -r '
+    "Cleanup candidates: \(.candidates | length)",
+    "Candidate bytes:    \([.candidates[].bytes] | add // 0)",
+    "Downloads items:    \(.downloads | length)",
+    "Plan:               '"$output"'"
+  ' "$output"
+}
+
+cleanup_replan() {
+  load_run
+  local plan="$RUN_DIR/plans/cleanup.json"
+  [[ -f "$plan" ]] || {
+    cleanup_plan
+    return
+  }
+  local suffix
+  suffix="$(date -u '+%Y%m%dT%H%M%SZ')"
+  mv "$plan" "$RUN_DIR/logs/cleanup.$suffix.json"
+  [[ ! -f "$plan.sha256" ]] || mv "$plan.sha256" "$RUN_DIR/logs/cleanup.$suffix.json.sha256"
+  update_run '.gates.cleanup_review = {status:"superseded"} | .next_action = "cleanup.plan" | .status = "active"'
+  cleanup_plan
+  update_run '.next_action = "gate.cleanup_review"'
+}
+
+cleanup_apply() {
+  load_run
+  local plan="$RUN_DIR/plans/cleanup.json"
+  [[ -f "$plan" && -f "$plan.sha256" ]] || die "cleanup plan is missing"
+  (cd "$RUN_DIR/plans" && shasum -a 256 -c cleanup.json.sha256 >/dev/null) || die "cleanup plan checksum changed"
+  local approved_sha current_sha
+  approved_sha="$(jq -er '.gates.cleanup_review | select(.status == "passed") | .evidence_sha256' "$RUN_FILE")" || die "cleanup plan has not passed human review"
+  current_sha="$(cut -d ' ' -f 1 "$plan.sha256")"
+  [[ "$approved_sha" == "$current_sha" ]] || die "cleanup plan differs from the human-reviewed plan"
+  local count
+  count="$(jq '.candidates | length' "$plan")"
+  if [[ "$count" == 0 ]]; then
+    jq -n --arg at "$(utc_now)" '{applied_at:$at,removed:[]}' > "$(receipt_path cleanup-apply)"
+    note "No cleanup candidates"
+    return
+  fi
+  local short_hash
+  short_hash="$(cut -c1-12 "$plan.sha256")"
+  local response=""
+  if [[ -t 0 ]]; then
+    print -n -- "Type DELETE REGENERABLE CACHES $short_hash to apply the reviewed plan: "
+    read -r response
+  else
+    die "cleanup apply requires an interactive terminal"
+  fi
+  [[ "$response" == "DELETE REGENERABLE CACHES $short_hash" ]] || die "cleanup cancelled"
+  python3 "$HELPER" cleanup-apply --plan "$plan" --output "$(receipt_path cleanup-apply)"
+  note "Applied reviewed cleanup plan"
+}
+
+cleanup_verify() {
+  load_run
+  python3 "$HELPER" cleanup-verify \
+    --plan "$RUN_DIR/plans/cleanup.json" \
+    --output "$(receipt_path cleanup-verify)"
+  note "Cleanup verification passed"
+}
+
+backup_plan_one() {
+  local id="$1"
+  local output="$(plan_path "$id")"
+  local disposition adapter
+  disposition="$(archive_value "$id" '.disposition')"
+  [[ "$disposition" == encrypted_archive ]] || return
+  if [[ -f "$output" || -f "$output.sha256" ]]; then
+    [[ -f "$output" && -f "$output.sha256" ]] || die "archive plan is incomplete for $id"
+    (cd "$RUN_DIR/plans" && shasum -a 256 -c "${output:t}.sha256" >/dev/null) || die "archive plan checksum is invalid for $id"
+    note "Plan already exists and is unchanged: $id"
+    return
+  fi
+  adapter="$(archive_value "$id" '.capture_adapter')"
+  if [[ "$adapter" == filesystem ]]; then
+    python3 "$HELPER" inventory \
+      --home "$HOME_ROOT" \
+      --config "$ARCHIVES_CONFIG" \
+      --archive "$id" \
+      --output "$output"
+  else
+    jq --arg id "$id" --arg at "$(utc_now)" '
+      .archives[] | select(.id == $id) | . + {generated_at:$at,present_sources:[],missing_sources:[]}' \
+      "$ARCHIVES_CONFIG" > "$output"
+  fi
+  shasum -a 256 "$output" > "$output.sha256"
+  note "Planned $id: $(jq -r '.source_files // "manual capture"' "$output")"
+}
+
+backup_plan() {
+  load_run
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    backup_plan_one "$id"
+  done < <(archive_ids "$target")
+  note "Review plans under $RUN_DIR/plans"
+}
+
+check_stopped_processes() {
+  local plan="$1"
+  local process
+  while IFS= read -r process; do
+    [[ -n "$process" ]] || continue
+    if pgrep -ix "$process" >/dev/null 2>&1; then
+      die "quit $process before creating this archive"
+    fi
+  done < <(jq -r '.requires_stopped[]?' "$plan")
+}
+
+validate_archive() {
+  local archive="$1"
+  local report="$2"
+  local sha
+  sha="$(shasum -a 256 "$archive" | cut -d ' ' -f 1)"
+  age --decrypt --identity "$(age_identity)" "$archive" \
+    | zstd --decompress --quiet --stdout \
+    | python3 "$HELPER" validate-tar --output "$report" --archive-sha256 "$sha"
+}
+
+write_metadata() {
+  local id="$1"
+  local archive="$2"
+  local plan="$(plan_path "$id")"
+  local filename sha bytes output
+  filename="${archive:t}"
+  sha="$(shasum -a 256 "$archive" | cut -d ' ' -f 1)"
+  bytes="$(stat -f '%z' "$archive")"
+  output="$RUN_DIR/archives/$id.metadata.json"
+  jq -n \
+    --slurpfile plan "$plan" \
+    --arg archive "$filename" \
+    --arg id "$id" \
+    --arg created_at "$(utc_now)" \
+    --arg sha256 "$sha" \
+    --arg recipient "$(age_recipient)" \
+    --arg remote "$(remote_value)/$filename" \
+    --argjson archive_bytes "$bytes" \
+    '{id:$id,archive:$archive,created_at:$created_at,
+      sources:($plan[0].present_sources // []),excluded:($plan[0].excludes // []),
+      source_bytes:($plan[0].source_bytes // null),source_files:($plan[0].source_files // null),
+      archive_bytes:$archive_bytes,sha256:$sha256,age_recipient:$recipient,
+      remote:$remote,capture_adapter:$plan[0].capture_adapter}' > "$output"
+  print -- "$sha  $filename" > "$archive.sha256"
+}
+
+backup_create_one() {
+  local id="$1"
+  local plan="$(plan_path "$id")"
+  [[ -f "$plan" && -f "$plan.sha256" ]] || die "archive plan is missing for $id"
+  (cd "$RUN_DIR/plans" && shasum -a 256 -c "${plan:t}.sha256" >/dev/null) || die "archive plan changed for $id"
+  local adapter
+  adapter="$(jq -er '.capture_adapter' "$plan")"
+  if [[ "$adapter" != filesystem ]]; then
+    note "$id requires manual capture; see $(jq -r '.manual_reference' "$plan")"
+    return
+  fi
+  if [[ "$(jq '.present_sources | length' "$plan")" == 0 ]]; then
+    note "Skipping $id: no configured sources exist"
+    return
+  fi
+  local refreshed="$RUN_DIR/plans/$id.inventory-refresh.json"
+  python3 "$HELPER" inventory \
+    --home "$HOME_ROOT" \
+    --config "$ARCHIVES_CONFIG" \
+    --archive "$id" \
+    --output "$refreshed"
+  jq -e --slurpfile current "$refreshed" '
+    .inventory_sha256 == $current[0].inventory_sha256
+    and .present_sources == $current[0].present_sources
+    and .missing_sources == $current[0].missing_sources
+    and .source_files == $current[0].source_files
+    and .source_bytes == $current[0].source_bytes
+  ' "$plan" >/dev/null || die "source inventory changed after archive-plan review: $id"
+  rm "$refreshed"
+  check_stopped_processes "$plan"
+  local output="$(archive_path "$id")"
+  if [[ -f "$output" && -f "$output.sha256" && -f "$RUN_DIR/archives/$id.metadata.json" ]]; then
+    [[ "$(shasum -a 256 "$output" | cut -d ' ' -f 1)" == "$(cut -d ' ' -f 1 "$output.sha256")" ]] || die "existing archive checksum is invalid: $id"
+    note "Archive already exists and is unchanged: $id"
+    return
+  fi
+  [[ ! -e "$output" ]] || die "incomplete existing archive requires review: $output"
+  rm -f "$output.partial"
+  local -a sources excludes tar_options
+  sources=("${(@f)$(jq -r '.present_sources[]' "$plan")}")
+  excludes=("${(@f)$(jq -r '.excludes[]?' "$plan")}")
+  tar_options=(--acls --xattrs)
+  local exclusion
+  for exclusion in "${excludes[@]}"; do
+    [[ -n "$exclusion" ]] && tar_options+=("--exclude=$exclusion")
+  done
+  note "Creating encrypted archive: ${output:t}"
+  tar "${tar_options[@]}" -C "$HOME_ROOT" -cpf - -- "${sources[@]}" \
+    | zstd --threads=0 --quiet --stdout \
+    | age --recipient "$(age_recipient)" --output "$output.partial"
+  validate_archive "$output.partial" "$RUN_DIR/reports/$id.archive-listing.json"
+  mv "$output.partial" "$output"
+  write_metadata "$id" "$output"
+  append_event "backup.create.$id" passed "sha256=$(cut -d ' ' -f 1 "$output.sha256")"
+}
+
+require_archive_plan_approval() {
+  local approved_sha current_sha
+  approved_sha="$(jq -er '.gates.archive_plan_review | select(.status == "passed") | .evidence_sha256' "$RUN_FILE")" || die "archive plans have not passed human review"
+  current_sha="$(gate_evidence_sha archive_plan_review)"
+  [[ "$approved_sha" == "$current_sha" ]] || die "archive plans differ from the human-reviewed plans"
+}
+
+backup_create() {
+  load_run
+  require_archive_plan_approval
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    backup_create_one "$id"
+  done < <(archive_ids "$target")
+}
+
+backup_register() {
+  load_run
+  local id="${1:-}"
+  local source="${2:-}"
+  [[ -n "$id" && -f "$source" ]] || die "usage: reinstall backup register <archive-id> <archive-path>"
+  [[ "$(archive_value "$id" '.disposition')" == encrypted_archive ]] || die "$id is not an encrypted archive category"
+  [[ -f "$(plan_path "$id")" ]] || backup_plan_one "$id"
+  require_archive_plan_approval
+  check_stopped_processes "$(plan_path "$id")"
+  local destination="$(archive_path "$id")"
+  [[ ! -e "$destination" ]] || die "archive already registered: $destination"
+  cp "$source" "$destination.partial"
+  validate_archive "$destination.partial" "$RUN_DIR/reports/$id.archive-listing.json"
+  local prefix
+  while IFS= read -r prefix; do
+    jq -e --arg prefix "$prefix" '
+      ($prefix | rtrimstr("/")) as $plain
+      | any(.members[]; .path == $plain or .path == $prefix or (.path | startswith($prefix)))
+    ' "$RUN_DIR/reports/$id.archive-listing.json" >/dev/null || die "$id is missing required archive content: $prefix"
+  done < <(archive_value "$id" '.required_member_prefixes[]?')
+  if [[ "$(archive_value "$id" '.capture_adapter')" == filesystem ]]; then
+    while IFS= read -r prefix; do
+      jq -e --arg prefix "$prefix" '
+        any(.members[]; .path == $prefix or (.path | startswith($prefix + "/")))
+      ' "$RUN_DIR/reports/$id.archive-listing.json" >/dev/null || die "$id is missing planned source content: $prefix"
+    done < <(jq -r '.present_sources[]' "$(plan_path "$id")")
+  fi
+  mv "$destination.partial" "$destination"
+  write_metadata "$id" "$destination"
+  append_event "backup.register.$id" passed "source=$source"
+  note "Registered and validated $id"
+}
+
+remote_object_exists() {
+  rclone lsjson "$1" >/dev/null 2>&1
+}
+
+upload_immutable() {
+  local local_path="$1"
+  local remote_path="$2"
+  local local_sha remote_sha
+  local_sha="$(shasum -a 256 "$local_path" | cut -d ' ' -f 1)"
+  if remote_object_exists "$remote_path"; then
+    remote_sha="$(rclone cat "$remote_path" | shasum -a 256 | cut -d ' ' -f 1)"
+    [[ "$remote_sha" == "$local_sha" ]] || die "remote object exists with different content: $remote_path"
+  else
+    rclone copyto "$local_path" "$remote_path"
+    remote_sha="$(rclone cat "$remote_path" | shasum -a 256 | cut -d ' ' -f 1)"
+    [[ "$remote_sha" == "$local_sha" ]] || die "remote upload verification failed: $remote_path"
+  fi
+}
+
+backup_upload_one() {
+  local id="$1"
+  local archive="$(archive_path "$id")"
+  [[ -f "$archive" ]] || {
+    note "Skipping upload for $id: archive not present"
+    return
+  }
+  local remote="$(remote_value)"
+  local filename="${archive:t}"
+  local local_sha
+  local_sha="$(cut -d ' ' -f 1 "$archive.sha256")"
+  upload_immutable "$archive" "$remote/$filename"
+  for sidecar in "$archive.sha256" "$RUN_DIR/archives/$id.metadata.json"; do
+    upload_immutable "$sidecar" "$remote/${sidecar:t}"
+  done
+  jq -n --arg at "$(utc_now)" --arg id "$id" --arg remote "$remote/$filename" --arg sha256 "$local_sha" \
+    '{id:$id,uploaded_at:$at,remote:$remote,sha256:$sha256}' > "$(receipt_path backup-upload-$id)"
+  append_event "backup.upload.$id" passed "remote=$remote/$filename"
+}
+
+backup_upload() {
+  load_run
+  require_command rclone
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    backup_upload_one "$id"
+  done < <(archive_ids "$target")
+}
+
+backup_verify_one() {
+  local id="$1"
+  local archive="$(archive_path "$id")"
+  [[ -f "$archive" ]] || {
+    note "Skipping verification for $id: archive not present"
+    return
+  }
+  local local_sha remote_sha
+  local_sha="$(shasum -a 256 "$archive" | cut -d ' ' -f 1)"
+  [[ "$local_sha" == "$(cut -d ' ' -f 1 "$archive.sha256")" ]] || die "local sidecar mismatch for $id"
+  local metadata="$RUN_DIR/archives/$id.metadata.json"
+  [[ -f "$metadata" ]] || die "metadata is missing for $id"
+  jq -e \
+    --arg id "$id" \
+    --arg archive "${archive:t}" \
+    --arg sha256 "$local_sha" \
+    --arg recipient "$(age_recipient)" \
+    --arg remote "$(remote_value)/${archive:t}" \
+    --argjson bytes "$(stat -f '%z' "$archive")" '
+      .id == $id and .archive == $archive and .sha256 == $sha256
+      and .age_recipient == $recipient and .remote == $remote
+      and .archive_bytes == $bytes
+    ' "$metadata" >/dev/null || die "metadata does not match archive: $id"
+  validate_archive "$archive" "$RUN_DIR/reports/$id.archive-listing.json"
+  remote_sha="$(rclone cat "$(remote_value)/${archive:t}" | shasum -a 256 | cut -d ' ' -f 1)"
+  [[ "$local_sha" == "$remote_sha" ]] || die "remote checksum mismatch for $id"
+  [[ "$(shasum -a 256 "$metadata" | cut -d ' ' -f 1)" == "$(rclone cat "$(remote_value)/${metadata:t}" | shasum -a 256 | cut -d ' ' -f 1)" ]] || die "remote metadata mismatch for $id"
+  jq -n --arg at "$(utc_now)" --arg id "$id" --arg sha256 "$local_sha" \
+    '{id:$id,verified_at:$at,local_decrypt_list:"passed",remote_stream_sha256:"passed",sha256:$sha256}' \
+    > "$(receipt_path backup-verify-$id)"
+  append_event "backup.verify.$id" passed "sha256=$local_sha"
+  note "Verified $id"
+}
+
+backup_verify() {
+  load_run
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    backup_verify_one "$id"
+  done < <(archive_ids "$target")
+}
+
+verify_dotfiles_published() {
+  [[ -z "$(git -C "$DOTFILES" status --porcelain --untracked-files=all)" ]] || die "dotfiles worktree must be clean before finalization"
+  local upstream
+  upstream="$(git -C "$DOTFILES" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null)" || die "dotfiles branch has no upstream"
+  git -C "$DOTFILES" fetch --quiet
+  [[ "$(git -C "$DOTFILES" rev-parse HEAD)" == "$(git -C "$DOTFILES" rev-parse "$upstream")" ]] || die "dotfiles HEAD is not identical to its fetched upstream"
+}
+
+backup_finalize() {
+  load_run
+  [[ ! -e "$RUN_DIR/manifest.json" && ! -e "$RUN_DIR/resume.json" ]] || die "run was already finalized; verify existing control files instead of replacing them"
+  verify_dotfiles_published
+  local id required plan archive
+  while IFS= read -r id; do
+    required="$(archive_value "$id" '.required // false')"
+    plan="$(plan_path "$id")"
+    archive="$(archive_path "$id")"
+    if [[ "$required" == true || ( -f "$plan" && "$(jq '.present_sources | length' "$plan")" -gt 0 ) ]]; then
+      [[ -f "$archive" ]] || die "required archive is missing: $id"
+      [[ -f "$(receipt_path backup-verify-$id)" ]] || die "remote verification receipt is missing: $id"
+      backup_verify_one "$id"
+    fi
+  done < <(archive_ids all)
+
+  local -a metadata
+  metadata=("$RUN_DIR"/archives/*.metadata.json(N))
+  (( ${#metadata[@]} > 0 )) || die "no archive metadata found"
+  (cd "$RUN_DIR/archives" && shasum -a 256 *.tar.zst.age > "$RUN_DIR/checksums/SHA256SUMS")
+  local commit branch
+  commit="$(git -C "$DOTFILES" rev-parse HEAD)"
+  branch="$(git -C "$DOTFILES" branch --show-current)"
+  jq -s \
+    --arg run_id "$RUN_ID" \
+    --arg created_at "$(utc_now)" \
+    --arg source_home "$HOME_ROOT" \
+    --arg target_home "$(jq -er '.target_home' "$RUN_FILE")" \
+    --arg recipient "$(age_recipient)" \
+    --arg commit "$commit" \
+    --arg branch "$branch" \
+    --slurpfile config "$ARCHIVES_CONFIG" \
+    '{schema_version:2,run_id:$run_id,created_at:$created_at,
+      source_home:$source_home,target_home:$target_home,age_recipient:$recipient,
+      dotfiles:{commit:$commit,branch:$branch},archives:sort_by(.id),
+      coverage:[$config[0].archives[] | select(.disposition != "encrypted_archive") |
+        {id,disposition,reason,restore_policy}]}' \
+    "${metadata[@]}" > "$RUN_DIR/manifest.json"
+  local manifest_sha checksums_sha
+  manifest_sha="$(shasum -a 256 "$RUN_DIR/manifest.json" | cut -d ' ' -f 1)"
+  checksums_sha="$(shasum -a 256 "$RUN_DIR/checksums/SHA256SUMS" | cut -d ' ' -f 1)"
+  jq -n \
+    --arg run_id "$RUN_ID" \
+    --arg remote "$(remote_value)" \
+    --arg recipient "$(age_recipient)" \
+    --arg commit "$commit" \
+    --arg manifest_sha256 "$manifest_sha" \
+    --arg checksums_sha256 "$checksums_sha" \
+    --arg next_action "gate.setup_assistant" \
+    '{schema_version:1,run_id:$run_id,phase:"post_erase",remote:$remote,
+      age_recipient:$recipient,dotfiles_commit:$commit,
+      manifest_sha256:$manifest_sha256,checksums_sha256:$checksums_sha256,
+      next_action:$next_action}' > "$RUN_DIR/resume.json"
+  local remote="$(remote_value)"
+  upload_immutable "$RUN_DIR/manifest.json" "$remote/manifest.json"
+  upload_immutable "$RUN_DIR/checksums/SHA256SUMS" "$remote/SHA256SUMS"
+  upload_immutable "$RUN_DIR/resume.json" "$remote/resume.json"
+  append_event backup.finalize passed "manifest_sha256=$manifest_sha"
+  note "Final manifest and resume state verified remotely"
+  note "Store this manifest digest independently: $manifest_sha"
+}
+
+restore_download() {
+  load_run
+  require_recorded_home
+  local manifest="$RUN_DIR/downloads/manifest.json"
+  [[ -f "$manifest" ]] || die "authenticated manifest is missing"
+  local filename expected local_path observed
+  while IFS=$'\t' read -r filename expected; do
+    local_path="$RUN_DIR/downloads/$filename"
+    if [[ -f "$local_path" ]]; then
+      observed="$(shasum -a 256 "$local_path" | cut -d ' ' -f 1)"
+      [[ "$observed" == "$expected" ]] || die "existing download has wrong checksum: $filename"
+    else
+      rclone copyto "$(remote_value)/$filename" "$local_path.partial"
+      observed="$(shasum -a 256 "$local_path.partial" | cut -d ' ' -f 1)"
+      [[ "$observed" == "$expected" ]] || die "downloaded archive has wrong checksum: $filename"
+      mv "$local_path.partial" "$local_path"
+    fi
+  done < <(jq -r '.archives[] | [.archive,.sha256] | @tsv' "$manifest")
+  (cd "$RUN_DIR/downloads" && shasum -a 256 -c SHA256SUMS)
+  note "Downloaded archives match the independently authenticated manifest"
+}
+
+restore_inspect_one() {
+  local id="$1"
+  local filename
+  filename="$(archive_value "$id" '.filename')"
+  local archive="$RUN_DIR/downloads/$filename"
+  [[ -f "$archive" ]] || {
+    note "Skipping inspect for $id: download not present"
+    return
+  }
+  validate_archive "$archive" "$RUN_DIR/reports/$id.restore-listing.json"
+  note "Inspected $id: $(jq '.members | length' "$RUN_DIR/reports/$id.restore-listing.json") members"
+}
+
+restore_inspect() {
+  load_run
+  require_recorded_home
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    restore_inspect_one "$id"
+  done < <(archive_ids "$target")
+}
+
+restore_stage_one() {
+  local id="$1"
+  local policy
+  policy="$(archive_value "$id" '.restore_policy')"
+  [[ "$policy" != manual ]] || {
+    note "Skipping stage for $id: application-specific restore"
+    return
+  }
+  local filename archive destination report
+  filename="$(archive_value "$id" '.filename')"
+  archive="$RUN_DIR/downloads/$filename"
+  destination="$RUN_DIR/staging/$id"
+  report="$RUN_DIR/reports/$id.restore-listing.json"
+  [[ -f "$archive" ]] || return
+  [[ -f "$report" ]] || die "inspect $id before staging"
+  local archive_sha
+  archive_sha="$(shasum -a 256 "$archive" | cut -d ' ' -f 1)"
+  [[ "$archive_sha" == "$(jq -er '.archive_sha256' "$report")" ]] || die "archive changed after inspection: $id"
+  if [[ -d "$destination" && -f "$(receipt_path restore-stage-$id)" ]]; then
+    [[ "$archive_sha" == "$(jq -er '.archive_sha256' "$(receipt_path restore-stage-$id)")" ]] || die "staging receipt does not match archive: $id"
+    note "Staging already exists for unchanged archive: $id"
+    return
+  fi
+  [[ ! -e "$destination" ]] || die "partial staging destination requires review: $destination"
+  mkdir -p "$destination"
+  chmod 700 "$destination"
+  age --decrypt --identity "$(age_identity)" "$archive" \
+    | zstd --decompress --quiet --stdout \
+    | tar -xpf - -C "$destination"
+  jq -n --arg at "$(utc_now)" --arg id "$id" --arg archive_sha256 "$archive_sha" \
+    '{id:$id,staged_at:$at,archive_sha256:$archive_sha256}' > "$(receipt_path restore-stage-$id)"
+  note "Staged $id"
+}
+
+restore_stage() {
+  load_run
+  require_recorded_home
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    restore_stage_one "$id"
+  done < <(archive_ids "$target")
+}
+
+restore_diff_one() {
+  local id="$1"
+  local destination="$RUN_DIR/staging/$id"
+  [[ -d "$destination" ]] || return
+  require_command rsync
+  local -a options
+  options=(-ainAX)
+  [[ "$id" != projects ]] || options+=("--exclude=projects/dotfiles/***")
+  rsync "${options[@]}" "$destination/" "$HOME_ROOT/" > "$RUN_DIR/conflicts/$id.rsync.txt"
+  shasum -a 256 "$RUN_DIR/conflicts/$id.rsync.txt" > "$RUN_DIR/conflicts/$id.rsync.txt.sha256"
+  note "Diff for $id: $RUN_DIR/conflicts/$id.rsync.txt"
+}
+
+restore_diff() {
+  load_run
+  require_recorded_home
+  local target="${1:-all}"
+  local id
+  while IFS= read -r id; do
+    restore_diff_one "$id"
+  done < <(archive_ids "$target")
+}
+
+restore_apply() {
+  load_run
+  require_recorded_home
+  local id="${1:-}"
+  [[ -n "$id" ]] || die "usage: reinstall restore apply <archive-id>"
+  [[ "$(archive_value "$id" '.restore_policy')" == merge_no_overwrite ]] || die "$id is stage-only or application-specific"
+  local staged="$RUN_DIR/staging/$id"
+  local report="$RUN_DIR/conflicts/$id.rsync.txt"
+  [[ -d "$staged" && -f "$report" ]] || die "stage and diff $id before apply"
+  local approved_sha current_sha
+  approved_sha="$(jq -er '.gates.restore_apply | select(.status == "passed") | .evidence_sha256' "$RUN_FILE")" || die "restore conflict reports have not passed human review"
+  current_sha="$(gate_evidence_sha restore_apply)"
+  [[ "$approved_sha" == "$current_sha" ]] || die "restore conflict reports differ from the human-reviewed reports"
+  (cd "$RUN_DIR/conflicts" && shasum -a 256 -c "$id.rsync.txt.sha256" >/dev/null) || die "reviewed conflict report changed: $id"
+  local current_report="$RUN_DIR/conflicts/$id.rsync.current.txt"
+  local -a dry_options apply_options
+  dry_options=(-ainAX)
+  apply_options=(-aAX --ignore-existing)
+  if [[ "$id" == projects ]]; then
+    dry_options+=("--exclude=projects/dotfiles/***")
+    apply_options+=("--exclude=projects/dotfiles/***")
+  fi
+  rsync "${dry_options[@]}" "$staged/" "$HOME_ROOT/" > "$current_report"
+  cmp -s "$report" "$current_report" || die "staged data or destination changed after conflict review: $id"
+  rm "$current_report"
+  local response=""
+  if [[ -t 0 ]]; then
+    print -n -- "Type APPLY STAGED $id to copy only missing files into $HOME_ROOT: "
+    read -r response
+  else
+    die "restore apply requires an interactive terminal"
+  fi
+  [[ "$response" == "APPLY STAGED $id" ]] || die "restore cancelled"
+  rsync "${apply_options[@]}" "$staged/" "$HOME_ROOT/"
+  jq -n --arg at "$(utc_now)" --arg id "$id" '{id:$id,applied_at:$at,policy:"merge_no_overwrite"}' \
+    > "$(receipt_path restore-apply-$id)"
+  note "Applied staged $id without overwriting existing files"
+}
+
+bootstrap() {
+  load_run
+  local phase="${1:-}"
+  case "$phase" in
+    tools)
+      require_command brew
+      brew bundle --file="$DOTFILES/Brewfile"
+      ;;
+    mas)
+      require_command brew
+      brew bundle --file="$DOTFILES/Brewfile.mas"
+      ;;
+    stow)
+      require_command stow
+      stow --dir="$DOTFILES" --target="$HOME_ROOT" --no-folding --simulate --verbose=2 shared macos
+      stow --dir="$DOTFILES" --target="$HOME_ROOT" --no-folding --restow shared macos
+      ;;
+    shell)
+      local before after fish_path
+      before="$(git -C "$DOTFILES" status --porcelain --untracked-files=all)"
+      fish_path="/opt/homebrew/bin/fish"
+      grep -qxF "$fish_path" /etc/shells || print -- "$fish_path" | sudo tee -a /etc/shells >/dev/null
+      chsh -s "$fish_path"
+      fish -c 'type -q fisher; or begin; curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source; fisher install jorgebucaran/fisher; end; fisher update'
+      after="$(git -C "$DOTFILES" status --porcelain --untracked-files=all)"
+      [[ "$before" == "$after" ]] || die "Fisher changed the dotfiles checkout; preserve and review the changes"
+      ;;
+    mise)
+      require_command mise
+      mise install
+      ;;
+    uv)
+      require_command uv
+      uv python install 3.12 --default
+      ;;
+    editors)
+      nvim --headless '+Lazy! sync' +qa
+      NVIM_APPNAME=lazyvim nvim --headless '+Lazy! sync' +qa
+      bat cache --build
+      ;;
+    defaults)
+      "$DOTFILES/macos/.config/macos/defaults.sh"
+      ;;
+    kanata)
+      "$DOTFILES/macos/.config/kanata/launchd/install.sh"
+      ;;
+    verify)
+      brew bundle check --file="$DOTFILES/Brewfile"
+      stow --dir="$DOTFILES" --target="$HOME_ROOT" --simulate shared macos
+      mise doctor
+      uv run --no-project --managed-python --python 3.12 python --version
+      ;;
+    *) die "bootstrap phase must be tools, mas, stow, shell, mise, uv, editors, defaults, kanata, or verify" ;;
+  esac
+  note "Bootstrap phase completed: $phase"
+}
+
+write_handoff() {
+  load_run
+  local output="${1:-$RUN_DIR/handoff.json}"
+  local commit
+  commit="$(git -C "$DOTFILES" rev-parse HEAD)"
+  jq -n \
+    --slurpfile run "$RUN_FILE" \
+    --arg updated_at "$(utc_now)" \
+    --arg commit "$commit" \
+    '{schema_version:1,updated_at:$updated_at,run_id:$run[0].run_id,
+      phase:$run[0].phase,status:$run[0].status,
+      repository:{required_commit:$commit,branch:"main",preserve_uncommitted:true},
+      next_action:{id:$run[0].next_action,command:"reinstall continue"},
+      read_set:["reinstall/macos/README.md"],
+      invariants:[
+        "Never erase, delete, or overwrite restored data without explicit human approval.",
+        "Never modify original encrypted archives.",
+        "Never overwrite the fresh dotfiles clone from a projects archive.",
+        "Reauthenticate by default; do not restore old tokens.",
+        "Target home after erase must be /Users/quangdn."
+      ],
+      human_required:[$run[0].gates | to_entries[] | select(.value.status != "passed") |
+        {id:.key,status:.value.status}],
+      evidence:{local_run_state:("~/.local/state/dotfiles-reinstall/runs/" + $run[0].run_id),
+        remote:$run[0].remote}}' > "$output.partial"
+  mv "$output.partial" "$output"
+  note "Wrote handoff: $output"
+}
+
+run_continue() {
+  load_run
+  local next
+  next="$(jq -er '.next_action' "$RUN_FILE")"
+  case "$next" in
+    doctor.pre_erase) doctor pre-erase; set_next doctor.pre_erase gate.recovery_accounts ;;
+    gate.recovery_accounts) gate_pass recovery_accounts ;;
+    gate.recovery_age) gate_pass recovery_age ;;
+    cleanup.plan) cleanup_plan; set_next cleanup.plan gate.cleanup_review ;;
+    gate.cleanup_review) gate_pass cleanup_review ;;
+    cleanup.apply) cleanup_apply; cleanup_verify; set_next cleanup.apply backup.plan ;;
+    backup.plan) backup_plan all; set_next backup.plan gate.archive_plan_review ;;
+    gate.archive_plan_review) gate_pass archive_plan_review ;;
+    backup.create) backup_create all; set_next backup.create gate.agent_state ;;
+    gate.agent_state) gate_pass agent_state ;;
+    backup.upload) backup_upload all; set_next backup.upload backup.verify ;;
+    backup.verify) backup_verify all; set_next backup.verify gate.representative_restore ;;
+    gate.representative_restore) gate_pass representative_restore ;;
+    gate.sync_only_recovery) gate_pass sync_only_recovery ;;
+    backup.finalize) backup_finalize; set_next backup.finalize gate.erase_approval ;;
+    gate.erase_approval) gate_pass erase_approval ;;
+    awaiting_erase)
+      note "Pre-erase automation is complete. Erase remains a manual System Settings action."
+      note "After cloning dotfiles, run the tracked script with: resume $(remote_value) <independently-stored-manifest-sha256>"
+      ;;
+    gate.setup_assistant) gate_pass setup_assistant ;;
+    doctor.post_erase) doctor post-erase; set_next doctor.post_erase bootstrap.tools ;;
+    bootstrap.tools) bootstrap tools; set_next bootstrap.tools gate.app_store ;;
+    gate.app_store) gate_pass app_store ;;
+    bootstrap.mas) bootstrap mas; set_next bootstrap.mas bootstrap.stow ;;
+    bootstrap.stow) bootstrap stow; set_next bootstrap.stow bootstrap.shell ;;
+    bootstrap.shell) bootstrap shell; set_next bootstrap.shell bootstrap.mise ;;
+    bootstrap.mise) bootstrap mise; set_next bootstrap.mise bootstrap.uv ;;
+    bootstrap.uv) bootstrap uv; set_next bootstrap.uv bootstrap.editors ;;
+    bootstrap.editors) bootstrap editors; set_next bootstrap.editors bootstrap.defaults ;;
+    bootstrap.defaults) bootstrap defaults; set_next bootstrap.defaults restore.download ;;
+    restore.download) restore_download; set_next restore.download restore.inspect ;;
+    restore.inspect) restore_inspect all; set_next restore.inspect restore.stage ;;
+    restore.stage) restore_stage all; restore_diff all; set_next restore.stage gate.restore_apply ;;
+    gate.restore_apply) gate_pass restore_apply ;;
+    restore.apply)
+      local missing=0
+      local id
+      while IFS= read -r id; do
+        if [[ -d "$RUN_DIR/staging/$id" && ! -f "$(receipt_path restore-apply-$id)" ]]; then
+          note "  reinstall restore apply $id"
+          missing=1
+        fi
+      done < <(jq -r '.archives[] | select(.restore_policy == "merge_no_overwrite") | .id' "$ARCHIVES_CONFIG")
+      if (( missing )); then
+        note "Apply each listed category after reviewing its conflict report, then run reinstall continue."
+      else
+        set_next restore.apply gate.account_login
+      fi
+      ;;
+    gate.account_login) gate_pass account_login ;;
+    gate.browser_sync) gate_pass browser_sync ;;
+    gate.raycast_sync) gate_pass raycast_sync ;;
+    bootstrap.kanata) bootstrap kanata; set_next bootstrap.kanata gate.privacy_permissions ;;
+    gate.privacy_permissions) gate_pass privacy_permissions ;;
+    gate.agent_sessions) gate_pass agent_sessions ;;
+    gate.filevault) gate_pass filevault ;;
+    bootstrap.verify) bootstrap verify; set_next bootstrap.verify gate.final_acceptance ;;
+    gate.final_acceptance) gate_pass final_acceptance ;;
+    completed) note "Run is complete. Keep encrypted archives for the documented retention period." ;;
+    *) die "unknown next action: $next" ;;
+  esac
+}
+
+main() {
+  local command="${1:-}"
+  shift || true
+  case "$command" in
+    init|resume|status|-h|--help|help|"") ;;
+    *) acquire_lock ;;
+  esac
+  case "$command" in
+    init) run_init "${1:-}" ;;
+    resume) run_resume "${1:-}" "${2:-}" ;;
+    status) status ;;
+    continue) run_continue ;;
+    doctor) load_run; doctor "${1:-pre-erase}" ;;
+    handoff) write_handoff "${1:-}" ;;
+    gate)
+      case "${1:-}" in
+        list) gate_list ;;
+        pass) gate_pass "${2:-}" ;;
+        *) die "usage: reinstall gate <list|pass> [gate-id]" ;;
+      esac
+      ;;
+    cleanup)
+      case "${1:-}" in
+        plan) cleanup_plan ;;
+        replan) cleanup_replan ;;
+        apply) cleanup_apply ;;
+        verify) cleanup_verify ;;
+        *) die "usage: reinstall cleanup <plan|replan|apply|verify>" ;;
+      esac
+      ;;
+    backup)
+      case "${1:-}" in
+        plan) backup_plan "${2:-all}" ;;
+        create) backup_create "${2:-all}" ;;
+        register) backup_register "${2:-}" "${3:-}" ;;
+        upload) backup_upload "${2:-all}" ;;
+        verify) backup_verify "${2:-all}" ;;
+        finalize) backup_finalize ;;
+        *) die "usage: reinstall backup <plan|create|register|upload|verify|finalize>" ;;
+      esac
+      ;;
+    restore)
+      case "${1:-}" in
+        download) restore_download ;;
+        inspect) restore_inspect "${2:-all}" ;;
+        stage) restore_stage "${2:-all}" ;;
+        diff) restore_diff "${2:-all}" ;;
+        apply) restore_apply "${2:-}" ;;
+        *) die "usage: reinstall restore <download|inspect|stage|diff|apply>" ;;
+      esac
+      ;;
+    bootstrap) bootstrap "${1:-}" ;;
+    -h|--help|help|"") usage ;;
+    *) die "unknown command: $command" ;;
+  esac
+}
+
+main "$@"

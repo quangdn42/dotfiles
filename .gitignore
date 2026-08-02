@@ -1,3 +1,23 @@
 /reinstall-staging/
 *.tar.zst.age
 *.tar.zst.age.sha256
+
+# Fisher-managed fish plugins (installed by `fisher update` from fish_plugins)
+shared/.config/fish/functions/_tide_*
+shared/.config/fish/functions/tide/
+shared/.config/fish/functions/tide.fish
+shared/.config/fish/functions/fish_prompt.fish
+shared/.config/fish/functions/fish_mode_prompt.fish
+shared/.config/fish/functions/fisher.fish
+shared/.config/fish/functions/_fzf_*
+shared/.config/fish/functions/fzf_configure_bindings.fish
+shared/.config/fish/functions/git_current_branch.fish
+shared/.config/fish/functions/git_develop_branch.fish
+shared/.config/fish/functions/git_feature_branch_prepend.fish
+shared/.config/fish/functions/git_main_branch.fish
+shared/.config/fish/conf.d/_tide_init.fish
+shared/.config/fish/conf.d/fzf.fish
+shared/.config/fish/conf.d/git_abbr.fish
+shared/.config/fish/completions/fisher.fish
+shared/.config/fish/completions/tide.fish
+shared/.config/fish/completions/fzf_configure_bindings.fish

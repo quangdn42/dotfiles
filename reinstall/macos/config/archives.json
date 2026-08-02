@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "naming": "stable filenames inside a timestamped run directory",
+  "archives": [
+    {
+      "id": "credentials",
+      "filename": "credentials.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [".ssh", ".gnupg"],
+      "excludes": [],
+      "required": false,
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "developer-history",
+      "filename": "developer-history.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [
+        ".local/share/fish/fish_history",
+        ".sqlite_history",
+        ".psql_history",
+        ".mysql_history",
+        "Library/Application Support/zoxide/db.zo",
+        "Library/Application Support/lazygit/state.yml"
+      ],
+      "excludes": [],
+      "required": false,
+      "requires_stopped": ["obs", "gimp", "gimp-3.0", "steam_osx"],
+      "restore_policy": "stage_only",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "personal",
+      "filename": "personal.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": ["Documents", "Desktop", "Pictures", "Movies", "Music"],
+      "excludes": [],
+      "required": false,
+      "restore_policy": "merge_no_overwrite",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "downloads",
+      "filename": "downloads.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": ["Downloads"],
+      "excludes": [],
+      "required": false,
+      "restore_policy": "merge_no_overwrite",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "workspaces",
+      "filename": "workspaces.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": ["workspaces"],
+      "excludes": [],
+      "required": false,
+      "restore_policy": "merge_no_overwrite",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "projects",
+      "filename": "projects.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": ["projects"],
+      "excludes": ["projects/dotfiles"],
+      "required": true,
+      "restore_policy": "merge_no_overwrite",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "browser-chrome",
+      "filename": "browser-chrome.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [
+        "Library/Application Support/Google/Chrome",
+        "Library/Preferences/com.google.Chrome.plist"
+      ],
+      "excludes": ["**/Cache/**", "**/Code Cache/**", "**/GPUCache/**", "**/Crashpad/**", "**/ShaderCache/**", "**/Service Worker/CacheStorage/**"],
+      "required": false,
+      "requires_stopped": ["Google Chrome"],
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "browser-edge",
+      "filename": "browser-edge.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [
+        "Library/Application Support/Microsoft Edge",
+        "Library/Preferences/com.microsoft.edgemac.plist"
+      ],
+      "excludes": ["**/Cache/**", "**/Code Cache/**", "**/GPUCache/**", "**/Crashpad/**", "**/ShaderCache/**"],
+      "required": false,
+      "requires_stopped": ["Microsoft Edge"],
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "browser-firefox",
+      "filename": "browser-firefox.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [
+        "Library/Application Support/Firefox",
+        "Library/Preferences/org.mozilla.firefox.plist"
+      ],
+      "excludes": ["**/cache2/**", "**/startupCache/**"],
+      "required": false,
+      "requires_stopped": ["firefox"],
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "browser-arc",
+      "filename": "browser-arc.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [
+        "Library/Application Support/Arc",
+        "Library/Preferences/company.thebrowser.Browser.plist"
+      ],
+      "excludes": ["**/Cache/**", "**/Code Cache/**", "**/GPUCache/**", "**/Crashpad/**", "**/ShaderCache/**"],
+      "required": false,
+      "requires_stopped": ["Arc"],
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "browser-brave",
+      "filename": "browser-brave.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": ["Library/Application Support/BraveSoftware/Brave-Browser"],
+      "excludes": ["**/Cache/**", "**/Code Cache/**", "**/GPUCache/**", "**/Crashpad/**", "**/ShaderCache/**"],
+      "required": false,
+      "requires_stopped": ["Brave Browser"],
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "app-state",
+      "filename": "app-state.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": [
+        "Library/Application Support/obs-studio",
+        "Library/Application Support/GIMP",
+        "Library/Application Support/Steam/userdata",
+        "Library/ScreenRecordings"
+      ],
+      "excludes": [],
+      "required": false,
+      "restore_policy": "stage_only",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "raycast-state",
+      "filename": "raycast-state.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "filesystem",
+      "sources": ["Library/Application Support/com.raycast.macos"],
+      "excludes": ["**/Caches/**", "**/logs/**"],
+      "required": false,
+      "requires_stopped": ["Raycast"],
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "opencode-exports",
+      "filename": "opencode-exports.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "manual",
+      "sources": [],
+      "excludes": [],
+      "required": true,
+      "requires_stopped": ["opencode"],
+      "required_member_prefixes": ["manifest.json", "exports/"],
+      "manual_reference": "reinstall/macos/docs/opencode.md",
+      "restore_policy": "stage_only",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "opencode-raw",
+      "filename": "opencode-raw.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "manual",
+      "sources": [],
+      "excludes": [],
+      "required": true,
+      "requires_stopped": ["opencode"],
+      "required_member_prefixes": ["raw/opencode.db"],
+      "manual_reference": "reinstall/macos/docs/opencode.md",
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "zed-agent",
+      "filename": "zed-agent.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "manual",
+      "sources": [],
+      "excludes": [],
+      "required": true,
+      "requires_stopped": ["Zed"],
+      "required_member_prefixes": ["zed-agent/threads.db", "zed-agent/zed-stable.db"],
+      "manual_reference": "reinstall/macos/docs/zed.md",
+      "restore_policy": "stage_only",
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "codex-agent",
+      "filename": "codex-agent.tar.zst.age",
+      "disposition": "encrypted_archive",
+      "capture_adapter": "manual",
+      "sources": [],
+      "excludes": [],
+      "required": true,
+      "requires_stopped": ["Codex"],
+      "required_member_prefixes": ["codex-agent/.codex/"],
+      "manual_reference": "reinstall/macos/docs/zed.md",
+      "restore_policy": "stage_only",
+      "sensitivity": "secret"
+    },
+    {
+      "id": "browser-safari",
+      "disposition": "sync_only",
+      "reason": "Safari raw state is not archived; verify supported Apple synchronization.",
+      "restore_policy": "human_verify"
+    },
+    {
+      "id": "apple-local-state",
+      "disposition": "intentionally_skipped",
+      "reason": "Verify Apple cloud/account recovery and create a local archive only when required.",
+      "restore_policy": "human_verify"
+    }
+  ]
+}

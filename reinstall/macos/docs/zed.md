@@ -28,9 +28,9 @@ Observed on 2026-07-31:
 The final backup tooling must inventory live counts and versions rather than
 using these planning values as restore targets.
 
-All native Zed thread folder paths, all Zed sidebar paths, and all Codex
-session working directories currently reference `/Users/quang-dang`. They must
-be rebound to `/Users/quangdn` in restore copies.
+The 2026 snapshot referenced `/Users/quang-dang`. Read `source_home` and
+`target_home` from the authenticated run manifest and rebind paths in restore
+copies only when those values differ.
 
 ## Ownership Boundaries
 
@@ -122,7 +122,7 @@ Create a curated encrypted Codex archive containing session data, state
 databases, history, memories, rules, skills, and configuration. Keep auth only
 inside the emergency payload and sign in again after reset.
 
-The final backup script must:
+The manual capture adapter must:
 
 - Count Codex thread-index rows and session JSONL files.
 - Check every Codex SQLite database for integrity.
@@ -145,6 +145,129 @@ The final backup script must:
 9. Upload with rclone and apply the same checksum and test-decryption gates as
    the other archives.
 
+## Executable Capture Fallback
+
+Use this when the manual capture adapters are reached. Run in zsh after quitting
+Zed, Codex, and every ACP process. Read all run values from state:
+
+```zsh
+REINSTALL="$HOME/projects/dotfiles/reinstall/macos/bin/reinstall"
+RUN_ID="$(cat "$HOME/.local/state/dotfiles-reinstall/active-run")"
+RUN_DIR="$HOME/.local/state/dotfiles-reinstall/runs/$RUN_ID"
+AGE_RECIPIENT="$(jq -r '.age_recipient' "$RUN_DIR/run.json")"
+
+if pgrep -ifl 'Zed|Codex|codex|ACP'; then
+  print -u2 -- 'Quit Zed, Codex, and ACP processes before capture.'
+  exit 1
+fi
+```
+
+### Native Zed Capture
+
+Create consistent SQLite copies and a portable JSON extract of every native
+thread. The database payload is zstd-compressed JSON:
+
+```zsh
+ZED_SOURCE="$HOME/Library/Application Support/Zed"
+ZED_CAPTURE="$RUN_DIR/staging/zed-capture"
+ZED_STAGE="$ZED_CAPTURE/zed-agent"
+test ! -e "$ZED_CAPTURE"
+mkdir -p "$ZED_STAGE/portable"
+chmod 700 "$ZED_CAPTURE"
+
+sqlite3 "$ZED_SOURCE/threads/threads.db" ".backup '$ZED_STAGE/threads.db'"
+sqlite3 "$ZED_SOURCE/db/0-stable/db.sqlite" ".backup '$ZED_STAGE/zed-stable.db'"
+test "$(sqlite3 "$ZED_STAGE/threads.db" 'PRAGMA integrity_check;')" = ok
+test "$(sqlite3 "$ZED_STAGE/zed-stable.db" 'PRAGMA integrity_check;')" = ok
+
+sqlite3 -json "$ZED_STAGE/threads.db" '
+SELECT id, summary, updated_at, created_at, data_type, parent_id,
+       worktree_branch, folder_paths, folder_paths_order, hex(data) AS data_hex
+FROM threads ORDER BY updated_at;
+' > "$ZED_STAGE/thread-rows.json"
+
+: > "$ZED_STAGE/portable-checksums.ndjson"
+for row in ${(f)"$(jq -c '.[]' "$ZED_STAGE/thread-rows.json")"}; do
+  id="$(jq -r '.id' <<<"$row")"
+  [[ "$id" =~ '^[A-Za-z0-9._-]+$' ]] || exit 1
+  jq -r '.data_hex' <<<"$row" | xxd -r -p |
+    zstd --decompress --quiet --stdout > "$ZED_STAGE/portable/$id.json"
+  jq -e . "$ZED_STAGE/portable/$id.json" >/dev/null
+  sha="$(shasum -a 256 "$ZED_STAGE/portable/$id.json" | cut -d ' ' -f 1)"
+  jq -cn --arg id "$id" --arg filename "portable/$id.json" --arg sha256 "$sha" \
+    '{id:$id,filename:$filename,sha256:$sha256}' \
+    >> "$ZED_STAGE/portable-checksums.ndjson"
+done
+
+jq -s '.' "$ZED_STAGE/portable-checksums.ndjson" \
+  > "$ZED_STAGE/portable-checksums.json"
+jq -n --slurpfile rows "$ZED_STAGE/thread-rows.json" \
+  --slurpfile checksums "$ZED_STAGE/portable-checksums.json" \
+  --arg created_at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+  '{schema_version:1,created_at:$created_at,
+    threads:[$rows[0][] | del(.data_hex)],portable:$checksums[0]}' \
+  > "$ZED_STAGE/threads-manifest.json"
+
+sqlite3 "$ZED_STAGE/zed-stable.db" \
+  ".output '$ZED_STAGE/sidebar-thread-metadata.sql'" \
+  '.dump sidebar_threads' '.output stdout'
+```
+
+Encrypt atomically and register it with the common pipeline:
+
+```zsh
+ZED_ARCHIVE="$RUN_DIR/zed-agent.tar.zst.age"
+tar -C "$ZED_CAPTURE" -cpf - zed-agent |
+  zstd --threads=0 --quiet --stdout |
+  age --recipient "$AGE_RECIPIENT" --output "$ZED_ARCHIVE.partial"
+mv "$ZED_ARCHIVE.partial" "$ZED_ARCHIVE"
+"$REINSTALL" backup register zed-agent "$ZED_ARCHIVE"
+```
+
+### Codex Capture
+
+Copy curated state only after Codex is stopped. Replace copied live SQLite files
+with online backups and exclude caches, logs, and transient WAL files:
+
+```zsh
+CODEX_CAPTURE="$RUN_DIR/staging/codex-capture"
+CODEX_STAGE="$CODEX_CAPTURE/codex-agent/.codex"
+test ! -e "$CODEX_CAPTURE"
+mkdir -p "$CODEX_STAGE"
+chmod 700 "$CODEX_CAPTURE"
+
+rsync -aAX \
+  --exclude='cache/' --exclude='log/' --exclude='logs/' \
+  --exclude='*.sqlite' --exclude='*.sqlite-shm' --exclude='*.sqlite-wal' \
+  "$HOME/.codex/" "$CODEX_STAGE/"
+
+for database in "$HOME/.codex"/*.sqlite(N); do
+  sqlite3 "$database" ".backup '$CODEX_STAGE/${database:t}'"
+  test "$(sqlite3 "$CODEX_STAGE/${database:t}" 'PRAGMA integrity_check;')" = ok
+done
+
+session_files="$(find "$CODEX_STAGE/sessions" -type f -name '*.jsonl' 2>/dev/null | wc -l | tr -d ' ')"
+thread_rows="$(sqlite3 "$CODEX_STAGE/state_5.sqlite" 'SELECT COUNT(*) FROM threads;')"
+jq -n --arg created_at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+  --arg codex_version "$(codex --version)" \
+  --argjson session_files "$session_files" --argjson thread_rows "$thread_rows" \
+  '{schema_version:1,created_at:$created_at,codex_version:$codex_version,
+    session_files:$session_files,thread_rows:$thread_rows,
+    auth_restore_default:false}' > "$CODEX_CAPTURE/codex-agent/manifest.json"
+
+CODEX_ARCHIVE="$RUN_DIR/codex-agent.tar.zst.age"
+tar -C "$CODEX_CAPTURE" -cpf - codex-agent |
+  zstd --threads=0 --quiet --stdout |
+  age --recipient "$AGE_RECIPIENT" --output "$CODEX_ARCHIVE.partial"
+mv "$CODEX_ARCHIVE.partial" "$CODEX_ARCHIVE"
+"$REINSTALL" backup register codex-agent "$CODEX_ARCHIVE"
+```
+
+The registered archive remains encrypted, but `auth.json` is still emergency
+material and must not be restored by default. After both registrations, return
+to `reinstall continue`; the `agent_state` gate binds approval to their archive
+checksums.
+
 ## Path Migration
 
 Never modify the encrypted originals. Perform migration only in a restored
@@ -164,9 +287,9 @@ Codex path-bearing data includes:
 - Session JSONL fields containing the old working directory
 - Configuration or shell snapshots that explicitly contain the old home
 
-The migration script must parse structured data and replace only the exact
-`/Users/quang-dang` prefix with `/Users/quangdn`. Do not use a broad textual
-replacement over encrypted archives or SQLite files.
+Migration must parse structured data and replace only the exact recorded
+`source_home` prefix with `target_home`. Do not use a broad textual replacement
+over encrypted archives or SQLite files.
 
 Old sandbox write grants should not be widened to the new home automatically.
 Leave them pointing to the nonexistent old path or clear them, then let Zed ask
@@ -179,7 +302,9 @@ for new approvals.
 3. Start Zed once only if needed to create its data directories, then quit it.
 4. Restore a migrated copy of the native `threads.db` before opening Thread
    History.
-5. Let Zed migrate native thread metadata into the new sidebar database.
+5. Selectively merge the migrated native-agent rows from `sidebar_threads` into
+   the initialized fresh stable database. Do not rely on Zed to recreate every
+   visible sidebar row from `threads.db` alone.
 6. Restore and migrate the curated Codex state.
 7. Reauthenticate Codex instead of restoring `auth.json` by default.
 8. Confirm `codex resume --all` lists the restored sessions.
