@@ -44,7 +44,7 @@ brew "wget"
 # Shared editor tooling
 brew "lua-language-server"
 brew "marksman"
-brew "pyright"
+brew "basedpyright"
 brew "ruff"
 brew "shfmt"
 brew "sql-formatter"

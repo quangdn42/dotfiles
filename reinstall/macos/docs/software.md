@@ -36,7 +36,7 @@ has an explicit, documented version requirement.
 | Files and preview | `bat`, `fd`, `ffmpegthumbnailer`, `p7zip`, `poppler`, `ripgrep`, `unar`, `yazi` |
 | Version control | `git`, `git-delta`, `gh`, `jj`, `lazygit` |
 | Development utilities and Python management | `curlie`, `hurl`, `hyperfine`, `jq`, `just`, `showkey`, `tokei`, `uv`, `wget` |
-| Shared editor tooling | `lua-language-server`, `marksman`, `pyright`, `ruff`, `shfmt`, `sql-formatter`, `stylua`, `tree-sitter-cli`, `yaml-language-server`, `yamlfmt` |
+| Shared editor tooling | `lua-language-server`, `marksman`, `basedpyright`, `ruff`, `shfmt`, `sql-formatter`, `stylua`, `tree-sitter-cli`, `yaml-language-server`, `yamlfmt` |
 | Editors and configuration | `neovim`, `stow` |
 | Machine setup | `kanata`, `mas`, `mise` |
 | Coding agents | `anomalyco/tap/opencode` |

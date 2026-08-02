@@ -27,6 +27,11 @@ return {
           CmpItemAbbrMatch = { fg = colors.blue },
           CmpItemAbbr = { fg = colors.text },
           PmenuBorder = { bg = colors.text },
+          WindlineModeNormal = { fg = colors.mauve },
+          WindlineModeInsert = { fg = colors.teal },
+          WindlineModeVisual = { fg = colors.yellow },
+          WindlineModeReplace = { fg = colors.lavender },
+          WindlineModeCommand = { fg = colors.maroon },
         }
       end,
     },

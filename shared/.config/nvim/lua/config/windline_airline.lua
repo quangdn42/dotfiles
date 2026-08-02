@@ -307,6 +307,14 @@ local default = {
   },
 }
 
+local function windline_mode_color(group, fallback)
+  local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
+  if hl and hl.fg then
+    return string.format('#%06x', hl.fg)
+  end
+  return fallback
+end
+
 windline.setup {
   colors_name = function(colors)
     local mod = function(c, value)
@@ -315,6 +323,12 @@ windline.setup {
       end
       return HSL.rgb_to_hsl(c):shade(value):to_rgb()
     end
+
+    colors.magenta = windline_mode_color('WindlineModeNormal', colors.magenta)
+    colors.green = windline_mode_color('WindlineModeInsert', colors.green)
+    colors.yellow = windline_mode_color('WindlineModeVisual', colors.yellow)
+    colors.blue = windline_mode_color('WindlineModeReplace', colors.blue)
+    colors.red = windline_mode_color('WindlineModeCommand', colors.red)
 
     colors.magenta_a = colors.magenta
     colors.magenta_b = mod(colors.magenta, 0.5)
