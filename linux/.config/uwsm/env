@@ -7,6 +7,9 @@ export PATH=$OMARCHY_PATH/bin:$PATH:$HOME/.local/bin
 # fcitx5-bamboo
 export XMODIFIERS=@im=fcitx
 
+# Use rbw as the SSH agent
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/rbw/ssh-agent-socket"
+
 # Set default terminal and editor
 source ~/.config/uwsm/default
 
