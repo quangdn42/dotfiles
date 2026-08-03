@@ -13,11 +13,6 @@ return {
     priority = 1000,
     opts = {
       dim_inactive = { enabled = false },
-      integrations = {
-        cmp = false,
-        blink_cmp = true,
-        diffview = true,
-      },
       custom_highlights = function(colors)
         return {
           FlashLabel = { fg = colors.crust, bg = colors.red, style = { 'bold' } },
