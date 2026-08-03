@@ -1,4 +1,5 @@
 [tools]
+node = "26.2.0"
 go = "1.26"
 "go:github.com/fatih/gomodifytags" = "v1.17.0"
 "go:github.com/go-delve/delve/cmd/dlv" = "v1.27.0"

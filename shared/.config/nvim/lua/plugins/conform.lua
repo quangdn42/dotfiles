@@ -1,13 +1,15 @@
 local formatters_by_ft = {
   go = { 'goimports', 'gofumpt' },
   hurl = { 'hurlfmt' },
+  json = { 'biome', 'prettierd', 'prettier', stop_after_first = true },
+  jsonc = { 'biome', 'prettierd', 'prettier', stop_after_first = true },
   just = { 'just' },
   lua = { 'stylua' },
-  sql = { 'sql_formatter' },
   mysql = { 'sql_formatter' },
   plsql = { 'sql_formatter' },
   python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
   sh = { 'shfmt' },
+  sql = { 'sql_formatter' },
   yaml = { 'yamlfmt' },
   zig = { 'zigfmt' },
 }

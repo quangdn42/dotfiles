@@ -23,9 +23,11 @@ if status is-interactive
 	set -g fish_greeting # disable fish greeting
 
 	# abbr & alias
-	abbr --add ls lsd
-	abbr --add tree lsd --tree
-	abbr --add la lsd -lA
+	abbr --add ls "lsd --group-directories-first"
+	abbr --add ll "lsd -lh --group-directories-first"
+	abbr --add la "lsd -lAh --group-directories-first"
+	abbr --add lt "lsd --tree --depth=3"
+	abbr --add lag "lsd -lAh --group-directories-first --git"
 	abbr --add lg lazygit
 	abbr --add cl curlie
 	abbr --add j jj
@@ -45,8 +47,7 @@ if status is-interactive
 
 	set -gx XDG_CONFIG_HOME $HOME/.config # for lazygit to use correct config folder
 
-
 	# fzf --fish | FZF_ALT_C_COMMAND= source
-	set -g FZF_DEFAULT_OPTS '--bind=up:previous,down:next'
+	# set -g FZF_DEFAULT_OPTS '--bind=up:previous,down:next'
 	zoxide init fish | source
 end
