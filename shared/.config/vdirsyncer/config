@@ -1,0 +1,19 @@
+[general]
+status_path = "~/.local/share/vdirsyncer/status/"
+
+[pair gmail_contacts]
+a = "gmail_contacts_local"
+b = "gmail_contacts_remote"
+collections = null
+conflict_resolution = "b wins"
+
+[storage gmail_contacts_local]
+type = "filesystem"
+path = "~/.local/share/contacts/"
+fileext = ".vcf"
+
+[storage gmail_contacts_remote]
+type = "carddav"
+url = "https://www.googleapis.com/carddav/v1/principals/ammon134@gmail.com/lists/default"
+username = "ammon134@gmail.com"
+password.fetch = ["command", "rbw", "get", "Main Gmail", "--field=AppPassword_aerc"]

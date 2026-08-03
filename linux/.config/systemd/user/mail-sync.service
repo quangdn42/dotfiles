@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync Gmail (mbsync + notmuch)
+
+[Service]
+Type=oneshot
+ExecStart=/home/quangdn/.config/aerc/mail-sync

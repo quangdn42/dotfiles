@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync Google contacts to local vdir
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vdirsyncer sync

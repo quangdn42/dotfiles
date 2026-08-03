@@ -1,0 +1,9 @@
+maildir = "~/.local/share/mail/gmail"
+
+addresses = [
+    "ammon134@gmail.com",
+    "quang.dang.n42@gmail.com",
+]
+
+outputpath = "~/.cache/maildir-rank-addr/addressbook.tsv"
+template = "{{.Address}}\t{{.Name}}\t{{.TotalRank}}"

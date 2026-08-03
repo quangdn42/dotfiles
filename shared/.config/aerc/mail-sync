@@ -1,6 +1,11 @@
 #!/bin/sh
 set -eu
 
+# Serialize runs: aerc's check-mail-cmd and the background systemd timer
+# may both trigger this script. Skip quietly if another instance is running.
+exec 9>"$HOME/.cache/mail-sync.lock" 2>/dev/null || exit 0
+flock -n 9 || exit 0
+
 mbsync gmail
 notmuch new
 
@@ -13,3 +18,9 @@ notmuch tag -draft -- 'tag:draft and not folder:"[Gmail]/Drafts"'
 
 notmuch tag +deleted -- 'folder:"[Gmail]/Trash"'
 notmuch tag -deleted -- 'tag:deleted and not folder:"[Gmail]/Trash"'
+
+# Refresh the ranked address book (at most once per hour)
+if [ ! -f "$HOME/.cache/maildir-rank-addr/addressbook.tsv" ] \
+   || [ -z "$(find "$HOME/.cache/maildir-rank-addr/addressbook.tsv" -mmin -60 2>/dev/null)" ]; then
+    maildir-rank-addr >/dev/null 2>&1 || true
+fi
