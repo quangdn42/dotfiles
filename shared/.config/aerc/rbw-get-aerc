@@ -1,0 +1,21 @@
+#!/bin/sh
+# Fetch the Gmail app password from the rbw (Bitwarden) vault.
+#
+# Fail fast when the vault is locked instead of hanging on an interactive
+# unlock prompt: this script runs from systemd timers and aerc's
+# check-mail-cmd, where no one can answer pinentry.
+#
+# Usage: rbw-get-aerc [item] [field]
+
+item="${1:-Main Gmail}"
+field="${2:-AppPassword_aerc}"
+
+if rbw unlocked >/dev/null 2>&1; then
+    exec timeout 15 rbw get "$item" --field="$field"
+fi
+
+# Vault locked: rbw will invoke the configured pinentry (pinentry-qt opens a
+# desktop dialog). Give a short prompt window, then fail so sync reports an
+# error instead of hanging forever.
+echo "rbw vault locked; pinentry should be prompting for the master password" >&2
+exec timeout 30 rbw get "$item" --field="$field"

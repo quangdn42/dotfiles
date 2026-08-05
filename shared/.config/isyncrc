@@ -2,7 +2,7 @@ IMAPAccount gmail
 Host imap.gmail.com
 Port 993
 User ammon134@gmail.com
-PassCmd "rbw get 'Main Gmail' --field='AppPassword_aerc'" 
+PassCmd "$HOME/.config/aerc/rbw-get-aerc"
 TLSType IMAPS
 
 IMAPStore gmail-remote
