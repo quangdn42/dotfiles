@@ -20,6 +20,23 @@ return {
     },
   },
 
+  -- Colorcolumn
+  {
+    'm4xshen/smartcolumn.nvim',
+    opts = {
+      colorcolumn = { '100' },
+      disabled_filetypes = {
+        'help',
+        'text',
+        'markdown',
+        'lazy',
+        'snacks_dashboard', -- Snacks.nvim dashboard filetype
+        'snacks_terminal', -- Snacks terminal
+        'lua',
+      },
+    },
+  },
+
   -- Auto resize focused splits
   {
     'nvim-focus/focus.nvim',
