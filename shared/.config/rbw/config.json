@@ -7,6 +7,6 @@
 	"notifications_url": null,
 	"lock_timeout": 86400,
 	"sync_interval": 3600,
-	"pinentry": "pinentry-qt",
+	"pinentry": "/home/quangdn/.local/bin/rbw-pinentry",
 	"client_cert_path": null
 }

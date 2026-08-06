@@ -1,0 +1,30 @@
+#!/bin/sh
+# Route rbw's pinentry invocation to the right backend.
+#
+# rbw-agent spawns its pinentry with --ttyname when the requesting client has
+# a controlling tty, and forwards that client's display env vars. Use that to
+# distinguish an SSH session from a local desktop prompt:
+#
+#   * tty present but no display (SSH session, or headless terminal) ->
+#     pinentry-tty, which prompts on the tty and works even when the desktop
+#     screen is locked.
+#   * otherwise -> pinentry-qt (desktop dialog).
+#
+# Backends fall back to the `pinentry` launcher so platforms that lack the
+# pinentry-qt/tty binaries (e.g. macOS) still get their normal prompt.
+
+if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
+    case " $* " in
+        *" --ttyname "*) 
+            if command -v pinentry-tty >/dev/null 2>&1; then
+                exec pinentry-tty "$@"
+            fi
+            ;;
+    esac
+fi
+
+if command -v pinentry-qt >/dev/null 2>&1; then
+    exec pinentry-qt "$@"
+fi
+
+exec pinentry "$@"

@@ -31,7 +31,8 @@ path=/home/quangdn/.local/share/mail/gmail
 [user]
 name=Quang Dang
 primary_email=ammon134@gmail.com
-other_email=quang.dang.42@gmail.com;quangdn42@gmail.com;
+other_email=quang.dang.n42@gmail.com;quangdn42@gmail.com
+email=quang.dang.n42@gmail.com
 # Configuration for "notmuch new"
 #
 # The following options are supported here:

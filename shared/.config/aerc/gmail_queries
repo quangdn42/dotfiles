@@ -3,7 +3,7 @@ Inbox=folder:INBOX and not tag:deleted
 Unread=tag:inbox and tag:unread and not tag:deleted
 AllUnread=tag:unread and not tag:deleted
 Archive=not tag:inbox and not tag:draft and not tag:deleted
-Sent=from:me and not tag:draft and not tag:deleted
+Sent=(from:ammon134@gmail.com or from:quang.dang.n42@gmail.com or from:quangdn42@gmail.com) and not tag:draft and not tag:deleted
 Drafts=tag:draft
 Trash=tag:deleted
 

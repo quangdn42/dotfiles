@@ -1,21 +1,59 @@
 #!/bin/sh
 # Fetch the Gmail app password from the rbw (Bitwarden) vault.
 #
-# Fail fast when the vault is locked instead of hanging on an interactive
-# unlock prompt: this script runs from systemd timers and aerc's
-# check-mail-cmd, where no one can answer pinentry.
+# Callers: isync PassCmd, msmtp passwordeval, vdirsyncer password.fetch and
+# aerc's check-mail-cmd (via mail-sync). rbw-agent raises a pinentry prompt
+# per request and does not cancel one once the requesting client is gone, so
+# repeated attempts would stack dialogs. This script guarantees at most one
+# prompt at a time:
+#
+#   - unlocked fast path: no pinentry involved
+#   - screen-locked path (hyprlock running): fail like a cancelled prompt,
+#     nobody can see or answer a dialog behind the lock screen
+#   - locked path: serialized with flock; callers that lose the lock skip the
+#     round and retry on the next cycle
+#   - stale prompts (children of rbw-agent running for over a minute) are
+#     swept before prompting so an in-flight prompt (e.g. an ssh pinentry-tty)
+#     is never killed
 #
 # Usage: rbw-get-aerc [item] [field]
 
 item="${1:-Main Gmail}"
 field="${2:-AppPassword_aerc}"
 
+sweep_stale_pinentry() {
+    agent_pid=$(pgrep -x rbw-agent 2>/dev/null || true)
+    [ -z "$agent_pid" ] && return 0
+    for cpid in $(pgrep -P "$agent_pid" -f pinentry 2>/dev/null || true); do
+        age=$(ps -o etimes= -p "$cpid" 2>/dev/null || true)
+        case "$age" in
+            '' | *[!0-9]*) continue ;;
+        esac
+        [ "$age" -ge 60 ] && kill "$cpid" 2>/dev/null || true
+    done
+}
+
 if rbw unlocked >/dev/null 2>&1; then
+    sweep_stale_pinentry
     exec timeout 15 rbw get "$item" --field="$field"
 fi
 
-# Vault locked: rbw will invoke the configured pinentry (pinentry-qt opens a
-# desktop dialog). Give a short prompt window, then fail so sync reports an
-# error instead of hanging forever.
-echo "rbw vault locked; pinentry should be prompting for the master password" >&2
-exec timeout 30 rbw get "$item" --field="$field"
+# Screen is locked: no dialog is possible (and none should be), so fail this
+# round exactly like a cancelled prompt; the next cycle will retry.
+if pgrep -x hyprlock >/dev/null 2>&1; then
+    exit 1
+fi
+
+# Vault locked. Serialize the unlock attempts so only one caller raises the
+# prompt; losers exit quietly and sync retries on the next round.
+exec 9>"$HOME/.cache/rbw-get-aerc.lock" 2>/dev/null || exit 0
+flock -n 9 || exit 0
+
+sweep_stale_pinentry
+
+# Vault is locked, so this call raises a pinentry prompt (pinentry-qt on the
+# desktop, pinentry-tty over ssh) and waits up to 30s for the master
+# password. A cancelled, ignored, or wrong-answer round fails only itself;
+# the vault stays locked and the next cycle retries.
+timeout 30 rbw get "$item" --field="$field"
+exit "$?"
