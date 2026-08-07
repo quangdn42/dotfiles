@@ -22,9 +22,12 @@ return {
 
   -- Colorcolumn
   {
-    'm4xshen/smartcolumn.nvim',
+    -- dir = '~/Projects/smartcolumn.nvim/',
+    'quangdn42/smartcolumn.nvim',
+    branch = 'ft/whitelist_ft',
     opts = {
       colorcolumn = { '100' },
+      enabled_filetypes = { 'zig', 'go' },
       disabled_filetypes = {
         'help',
         'text',
