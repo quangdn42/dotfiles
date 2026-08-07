@@ -7,7 +7,3 @@ for brew_prefix in /opt/homebrew /usr/local
         break
     end
 end
-
-if status is-interactive
-    __dotfiles_apply_fish_theme tokyonight
-end

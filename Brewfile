@@ -68,6 +68,7 @@ brew "anomalyco/tap/opencode"
 # Fonts
 cask "font-ibm-plex-mono"
 cask "font-jetbrains-mono-nerd-font"
+cask "font-belleza"
 
 # Terminals and development applications
 cask "codex"

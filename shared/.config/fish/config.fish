@@ -1,9 +1,3 @@
-# Platform-specific environment and theme config.
-set -l platform_config $HOME/.config/fish/platform.fish
-if test -f $platform_config
-    source $platform_config
-end
-
 set -gx BAT_THEME ansi
 
 # PATH
