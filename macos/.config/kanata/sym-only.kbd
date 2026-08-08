@@ -6,6 +6,12 @@
   macos-dev-names-include (
     "Apple Internal Keyboard / Trackpad"
   )
+  tap-hold-require-prior-idle 100
+)
+
+(defhands
+  (left  q w e r t a s d f g z x c v b)
+  (right y u i o p h j k l ; ' n m , . /)
 )
 
 (defsrc
@@ -20,30 +26,10 @@
 (defvar
   tap-time 200
   hold-time 150
-
-  left-hand-keys (
-    q w e r t
-    a s d f g
-    z x c v b
-  )
-
-  right-hand-keys (
-    y u i o p
-    h j k l ;
-    n m , . /
-  )
-)
-
-(deffakekeys
-  to-base (layer-switch base)
+  pinky-hold-time 150
 )
 
 (defalias
-  tap (multi
-    (layer-switch nomods)
-    (on-idle-fakekey to-base tap 20)
-  )
-
   ;; Ctrl Esc
   esc (tap-hold $tap-time $hold-time esc lctl)
 
@@ -53,43 +39,45 @@
   fn-off (tap-hold 200 200 (multi (macro A-spc) (layer-switch base)) @fn-hold)
 
   ;; Home row mods
-  ;; f (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lsft $left-hand-keys)
-  z (tap-hold-release-keys $tap-time $hold-time (multi z @tap) lalt $left-hand-keys)
-  x (tap-hold-release-keys $tap-time $hold-time (multi x @tap) lmet $left-hand-keys)
-  c (tap-hold-release-keys $tap-time $hold-time (multi c @tap) lctl $left-hand-keys)
+  z (tap-hold-opposite-hand $hold-time z lalt (timeout hold))
+  x (tap-hold-opposite-hand $hold-time x lmet (timeout hold))
+  c (tap-hold-opposite-hand $hold-time c lctl (timeout hold))
 
-  m (tap-hold-release-keys $tap-time $hold-time (multi m @tap) rctl $right-hand-keys)
-  comm (tap-hold-release-keys $tap-time $hold-time (multi , @tap) rmet $right-hand-keys)
-  dot (tap-hold-release-keys $tap-time $hold-time (multi . @tap) ralt $right-hand-keys)
-  slsh (tap-hold-release-keys $tap-time $hold-time (multi / @tap) rsft $right-hand-keys)
+  m (tap-hold-opposite-hand $hold-time m rctl (timeout hold))
+  comm (tap-hold-opposite-hand $hold-time , rmet (timeout hold))
+  dot (tap-hold-opposite-hand $hold-time . ralt (timeout hold))
+  slsh (tap-hold-opposite-hand $hold-time / rsft (timeout hold))
 
-  ;; Navigation Layer (hold Space)
-  ;; spc (tap-hold 200 200 spc (layer-while-held symbols))
-  spc (tap-hold-release 175 175 spc (layer-while-held symbols))
-  a (tap-hold-release 175 175 a (layer-while-held numbers))
+  ;; Apostrophe as left-Alt mod-tap (home row mod)
+  apos (tap-hold-opposite-hand $pinky-hold-time ' lalt (timeout hold))
+
+  ;; Symbol Layer (hold Space)
+  spc (tap-hold-release 175 175 spc (layer-while-held symbols) (require-prior-idle 0))
+  ;; Numbers Layer (hold A)
+  a (tap-hold-release 175 175 a (layer-while-held numbers) (require-prior-idle 0))
 
   ;; Symbol layer bottom row mods
-  symz (tap-hold-release-keys $tap-time $hold-time S-= lalt $left-hand-keys)
-  symx (tap-hold-release-keys $tap-time $hold-time S-8 lmet $left-hand-keys)
-  symc (tap-hold-release-keys $tap-time $hold-time S-9 lctl $left-hand-keys)
+  symz (tap-hold-opposite-hand $hold-time S-= lalt (timeout hold))
+  symx (tap-hold-opposite-hand $hold-time S-8 lmet (timeout hold))
+  symc (tap-hold-opposite-hand $hold-time S-9 lctl (timeout hold))
 )
 
 (deflayer base
   esc     brdn  brup  mctl  sls   dtn   dnd   prev  pp    next  mute  vold  volu
   grv     1     2     3     4     5     6     7     8     9     0     -     =     bspc
   tab     q     w     e     r     t     y     u     i     o     p     [     ]     S-min
-  @esc    @a    s     d     f     g     h     j     k     l     ;     '     ret
+  @esc    @a    s     d     f     g     h     j     k     l     ;     @apos ret
   lsft    @z    @x    @c    v     b     n     @m    @comm @dot  @slsh rsft
-  @fn-on  lctl  lalt  lmet        @spc                      rmet  ralt
+  @fn-on  lctl  lalt  lmet        @spc                      lctl  ralt
 )
 
 (deflayer nomods
   esc     brdn  brup  mctl  sls   dtn   dnd   prev  pp    next  mute  vold  volu
   grv     1     2     3     4     5     6     7     8     9     0     -     =     bspc
   tab     q     w     e     r     t     y     u     i     o     p     [     ]     \
-  caps    a     s     d     f     g     h     j     k     l     ;     '     ret
+  caps    a     s     d     f     g     h     j     k     l     ;     @apos ret
   lsft    z     x     c     v     b     n     m     ,     .     /     rsft
-  @fn-off lctl  lalt  lmet        spc                       rmet  ralt
+  @fn-off lctl  lalt  lmet        spc                       lctl  ralt
 )
 
 (deflayer numbers
@@ -130,7 +118,7 @@
   esc   brdn  brup  mctl  sls   dtn   dnd   prev  pp    next  mute  vold  volu
   grv   1     2     3     4     5     6     7     8     9     0     -     =     bspc
   tab   S-,   S-.   S-;   -     S-\   \     S-6   S-4   S-5   \     bspc  del   \
-  caps  S-1   S-[   S-]   =     S-7   left  down  up    right S-4   '     ret
+  caps  S-1   S-[   S-]   =     S-7   left  down  up    right S-4   @apos ret
   lsft  @symz @symx @symc S-0   S-`   S-3   S-2   .     ;     ,     rsft
-  _     lctl  lalt  lmet                    spc                       rmet  ralt
+  _     lctl  lalt  lmet                    spc                       lctl  ralt
 )

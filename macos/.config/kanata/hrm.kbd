@@ -2,6 +2,13 @@
 
 (defcfg
   process-unmapped-keys yes
+  concurrent-tap-hold   yes
+  tap-hold-require-prior-idle 100
+)
+
+(defhands
+  (left  q w e r t a s d f g z x c v b)
+  (right y u i o p h j k l ; ' n m , . /)
 )
 
 (defsrc
@@ -15,64 +22,38 @@
 (defvar
   tap-time 200
   hold-time 150
-
-  left-hand-keys (
-    q w e r t
-    a s d f g
-    z x c v b
-  )
-
-  right-hand-keys (
-    y u i o p
-    h j k l ;
-    n m , . /
-  )
-)
-
-(deffakekeys
-  to-base (layer-switch base)
+  pinky-hold-time 150
 )
 
 (defalias
-  tap (multi
-    (layer-switch nomods)
-    (on-idle-fakekey to-base tap 20)
-  )
+;; Home row mods
+  a (tap-hold-opposite-hand $hold-time a lmet (timeout hold))
+  s (tap-hold-opposite-hand $hold-time s lalt (timeout hold))
+  d (tap-hold-opposite-hand $hold-time d lctl (timeout hold))
+  f (tap-hold-opposite-hand $hold-time f lsft (timeout hold))
 
-  ;; Home row mods
-  a (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lmet $left-hand-keys)
-  s (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lalt $left-hand-keys)
-  d (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lctl $left-hand-keys)
-  f (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lsft $left-hand-keys)
+  j (tap-hold-opposite-hand $hold-time j rsft (timeout hold))
+  k (tap-hold-opposite-hand $hold-time k rctl (timeout hold))
+  l (tap-hold-opposite-hand $hold-time l ralt (timeout hold))
+  ; (tap-hold-opposite-hand $pinky-hold-time ; rmet (timeout hold))
 
-  j (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rsft $right-hand-keys)
-  k (tap-hold-release-keys $tap-time $hold-time (multi k @tap) rctl $right-hand-keys)
-  l (tap-hold-release-keys $tap-time $hold-time (multi l @tap) ralt $right-hand-keys)
-  ; (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rmet $right-hand-keys)
+  ;; Apostrophe as left-Alt mod-tap (home row mod)
+  apos (tap-hold-opposite-hand $pinky-hold-time ' lalt (timeout hold))
 
-  ;; W and O also act as home row mods for symbol layer
-  w (tap-hold-release-keys $tap-time $hold-time (multi w @tap) (layer-while-held symbols) $left-hand-keys)
-  o (tap-hold-release-keys $tap-time $hold-time (multi o @tap) (layer-while-held symbols) $right-hand-keys)
-
+  ;; W and O hold to reach the symbol layer
+  w (tap-hold-opposite-hand $hold-time w (layer-while-held symbols) (timeout hold))
+  o (tap-hold-opposite-hand $hold-time o (layer-while-held symbols) (timeout hold))
 
   ;; Navigation Layer (hold Space)
-  spc (tap-hold 200 200 spc (layer-while-held nav))
+  spc (tap-hold 200 200 spc (layer-while-held nav) (require-prior-idle 0))
 )
 
 (deflayer base
   grv 1 2 3 4 5 6 7 8 9 0 - = bspc
   tab q  @w e  r t y u i @o p [ ] \
-  esc @a @s @d @f g h @j @k @l @; ' ret
+  esc @a @s @d @f g h @j @k @l @; @apos ret
   lsft z x c v b n m , . / rsft
-  lctl lalt lmet    @spc       rmet ralt
-)
-
-(deflayer nomods
-  esc 1 2 3 4 5 6 7 8 9 0 - = bspc
-  tab q w e r t y u i o p [ ] \
-  caps a s d f g h j k l ; ' ret
-  lsft z x c v b n m , . / rsft
-  lctl lalt lmet     spc       rmet ralt
+  lctl lalt lmet    @spc       lctl ralt
 )
 
 (deflayermap (nav)
@@ -94,7 +75,7 @@
 ;;   . \\ _ # * ^ $ { } ?
   esc  1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab  `    S-,  S-.  /    .    S-\  S-`  [    ]    S-2  [    ]    \
-  caps S-1  S-'  S-=  =    -    S-7  S-;  S-9  S-0  S-5  '    ret
+  caps S-1  S-'  S-=  =    -    S-7  S-;  S-9  S-0  S-5  @apos ret
   lsft \    \    S--  S-3  S-8  S-6  S-4  S-[  S-]  S-/    rsft
-  lctl lalt lmet           spc                 rmet ralt
+  lctl lalt lmet           spc                 lctl ralt
 )
