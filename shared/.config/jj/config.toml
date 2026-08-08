@@ -7,4 +7,5 @@ email = "quangdn42@gmail.com"
 [ui]
 pager = "delta -s"
 diff-formatter = ":git"
+default-command = "log"
 

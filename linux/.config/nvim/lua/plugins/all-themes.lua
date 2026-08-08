@@ -27,6 +27,7 @@ return {
           WindlineModeVisual = { fg = colors.yellow },
           WindlineModeReplace = { fg = colors.lavender },
           WindlineModeCommand = { fg = colors.maroon },
+          ColorColumn = { bg = colors.red },
         }
       end,
     },
@@ -62,6 +63,7 @@ return {
           PmenuSel = { fg = 'NONE', bg = theme.ui.bg_p2 },
           PmenuSbar = { bg = theme.ui.bg_m1 },
           PmenuThumb = { bg = theme.ui.bg_p2 },
+          ColorColumn = { bg = palette.samuraiRed },
         }
       end,
     },

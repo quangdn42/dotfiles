@@ -13,6 +13,7 @@ return {
         hl['SnacksDashboardHeader'] = { fg = colors.blue2 }
         hl['WinBar'] = { bg = colors.bg }
         hl['WinBarNC'] = { bg = colors.bg }
+        hl['ColorColumn'] = { bg = colors.red }
       end,
       on_colors = function(colors)
         colors.border = colors.blue2
