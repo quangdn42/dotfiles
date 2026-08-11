@@ -3,4 +3,9 @@ Description=Sync Gmail (mbsync + notmuch)
 
 [Service]
 Type=oneshot
+# Background timers must not start/unlock rbw: an agent started from a oneshot
+# service can be killed with that service cgroup, causing repeated prompts.
+# Skip timer runs until an interactive rbw unlock has populated the shared
+# agent. aerc's in-app check-mail-cmd calls mail-sync directly and may prompt.
+ExecCondition=/bin/sh -c '/usr/bin/rbw unlocked >/dev/null 2>&1'
 ExecStart=/home/quangdn/.config/aerc/mail-sync

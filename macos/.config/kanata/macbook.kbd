@@ -39,7 +39,7 @@
   fn-off (tap-hold 200 200 (multi (macro A-spc) (layer-switch base)) @fn-hold)
 
   ;; Numbers Layer (hold C)
-  num (tap-hold-opposite-hand $hold-time c (layer-while-held numbers) (timeout hold))
+  num (tap-hold-opposite-hand-release $hold-time c (layer-while-held numbers) (timeout hold))
 
   ;; Symbol Layer (hold Space)
   spc (tap-hold-release 175 175 spc (layer-while-held symbols) (require-prior-idle 40))
