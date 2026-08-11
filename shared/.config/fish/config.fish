@@ -34,6 +34,9 @@ if status is-interactive
 	abbr --add jsqi jj squash -i
 	alias v nvim
 	alias n 'NVIM_APPNAME="lazyvim" nvim'
+	alias zed zeditor
+	alias oc opencode
+	alias co codex
 	abbr --add dotdot --regex '^\.\.+$' --function multicd
 
 	# man syntax highlighting

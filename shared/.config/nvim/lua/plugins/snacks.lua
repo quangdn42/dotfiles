@@ -56,7 +56,7 @@ return {
       { '<leader>gg', function() Snacks.lazygit({ cwd = vim.fs.root(0, '.git')}) end, desc = 'Lazygit' },
       { '<leader>gs', function() Snacks.lazygit({ cwd = vim.fs.root(0, '.git')}) end, desc = 'Lazygit' },
       { '<leader>gl', function() Snacks.lazygit.log() end, desc = 'Lazygit Log (cwd)' },
-      { '<leader>n', function() Snacks.scratch { icon = ' ', name = 'Todo', ft = 'markdown', file = '~/.local/share/nvim/TODO.md' } end, desc = 'Notes' },
+      { '<leader>n',  function() Snacks.scratch { icon = ' ', name = 'Todo', ft = 'markdown', file = '~/.local/share/nvim/TODO.md' } end, desc = 'Notes' },
       { '<leader>un', function() Snacks.notifier.hide() end, desc = 'Dismiss All Notifications' },
     },
     -- stylua: ignore end
