@@ -12,6 +12,21 @@
   permission, erase, destructive-cleanup, or final-acceptance gate based only
   on agent inference.
 
+## Omarchy 4 Migration
+
+- For the one-time Omarchy 3.8.4 to 4.0.0 migration, read
+  `reinstall/omarchy4/README.md` and `reinstall/omarchy4/groups.md` before
+  changing any Linux desktop configuration.
+- This is a documented, manual workflow, not a script-driven reinstall. Follow
+  the documented human gates and record the completed phase in the handoff
+  note; do not infer progress from a previous agent conversation.
+- Preserve the exact pre-upgrade configuration on the documented pushed archive
+  branch. Do not restore retired Waybar, Walker, Mako, SwayOSD, Hypridle, or
+  Hyprlock configuration directly into Omarchy 4.
+- After final migration acceptance, remove this entire `Omarchy 4 Migration`
+  section with `reinstall/omarchy4/` and its link from `reinstall/README.md`.
+  The completed runbook remains recoverable from Git history.
+
 ## Custom Neovim
 
 - Treat the custom Neovim configuration as the union of
