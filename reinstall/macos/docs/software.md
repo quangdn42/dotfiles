@@ -54,7 +54,7 @@ preview and archive workflows rather than installed as incidental dependencies.
 | Security and sync | `google-drive`, `tailscale-app` |
 | Workflow | `appcleaner`, `flashspace`, `gonhanh`, `lunar`, `mac-mouse-fix`, `raycast`, `shottr`, `swish` |
 | Media and creative | `gimp`, `iina`, `obs`, `spotify`, `steam` |
-| Fonts | `font-ibm-plex-mono`, `font-jetbrains-mono-nerd-font` |
+| Fonts | `font-ibm-plex-mono`, `font-jetbrains-mono` |
 
 Lunar and WhatsApp deliberately use Homebrew even though App Store
 versions exist.
