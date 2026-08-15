@@ -15,8 +15,9 @@ payload to copy forward. Read the official [4.0.0 release notes](https://github.
 1. Read [`groups.md`](groups.md). It is the authoritative inventory and tells
    the agent what to leave alone, test natively, port, or remove.
 2. Read [`rollback.md`](rollback.md) before creating any checkpoint.
-3. Confirm that `main` is clean and pushed. The known starting commit is
-   `b619904` (`use local keyring for aerc synced from rbw`).
+3. Confirm that `main` is clean and pushed, and that the known pre-upgrade
+   commit `b619904` (`use local keyring for aerc synced from rbw`) is an
+   ancestor of `main`.
 4. Use [`handoff.md`](handoff.md) after a reboot or a change of agent. It is a
    small manually maintained note, not automation.
 
@@ -36,9 +37,9 @@ git push origin archive/omarchy-3.8.4-pre-quattro
 git switch -c migrate/omarchy-4
 ```
 
-Stop if `main` is not clean, not pushed, or no longer resolves to `b619904`.
-The archive branch is the permanent exact-copy restoration source; do not keep
-obsolete copies on `main` merely as a backup.
+Stop if `main` is not clean, not pushed, or does not contain `b619904` in its
+history. The archive branch is the permanent exact-copy restoration source; do
+not keep obsolete copies on `main` merely as a backup.
 
 Create a timestamped working directory outside the repository, for example
 `~/.local/state/dotfiles-omarchy4/20260815T120000Z/`. Store there:
