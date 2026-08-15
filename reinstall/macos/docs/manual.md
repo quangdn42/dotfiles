@@ -490,6 +490,20 @@ readlink "$HOME/.config/ghostty/config"
 readlink "$HOME/.config/zed/settings.json"
 ```
 
+After signing in to Bitwarden Desktop, use it to verify the `Macbook Air
+general` SSH item. Register the independent `rbw` client once, then install the
+key from that authoritative vault item:
+
+```sh
+rbw register
+ssh-key-sync c0071171-1062-4ea1-a5dc-b49a00051e81
+rbw lock
+```
+
+The refresh opens `pinentry-mac` for the Bitwarden password. It requires
+FileVault and preserves any installed key if sync, export, or validation fails.
+Do not restore an archived `id_ed25519` over this fresh copy later.
+
 ## 6. Configure Fish, Fisher, and Runtimes Manually
 
 Add Fish to the allowed login shells and select it:
@@ -663,7 +677,9 @@ inspect_archive credentials.tar.zst.age "$RECOVERY_ROOT/credentials.listing.json
 stage_archive credentials.tar.zst.age "$RECOVERY_ROOT/credentials"
 ```
 
-Inspect the staged paths. Restore SSH only if the keys are still required:
+Inspect the staged paths. The current `id_ed25519` comes from Bitwarden via
+`ssh-key-sync`; do not overwrite it from this archive. Preview the other SSH
+files only if they are still required:
 
 ```sh
 mkdir -p "$HOME/.ssh"
@@ -672,11 +688,14 @@ rsync -ainAX "$RECOVERY_ROOT/credentials/.ssh/" "$HOME/.ssh/" \
   > "$RECOVERY_ROOT/credentials-ssh.rsync.txt"
 ```
 
-Review the report and preserve any fresh GitHub key or configuration. Then copy
-only missing files while retaining modes, ACLs, and extended attributes:
+Review the report and preserve the fresh Bitwarden-sourced key and current
+configuration. Then copy only missing files while retaining modes, ACLs, and
+extended attributes:
 
 ```sh
-rsync -aAX --ignore-existing "$RECOVERY_ROOT/credentials/.ssh/" "$HOME/.ssh/"
+rsync -aAX --ignore-existing \
+  --exclude='id_ed25519' --exclude='id_ed25519.pub' \
+  "$RECOVERY_ROOT/credentials/.ssh/" "$HOME/.ssh/"
 ```
 
 Reauthenticate GitHub, Google Drive, Bitwarden, Tailscale, coding agents, and

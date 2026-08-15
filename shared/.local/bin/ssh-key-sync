@@ -1,0 +1,95 @@
+#!/bin/sh
+
+set -eu
+
+usage() {
+	echo "usage: ssh-key-sync <Bitwarden item name or UUID>" >&2
+	exit 2
+}
+
+fail() {
+	echo "ssh-key-sync: $*" >&2
+	exit 1
+}
+
+[ "$#" -eq 1 ] || usage
+
+item=$1
+ssh_dir=${HOME:?HOME is not set}/.ssh
+private_key=$ssh_dir/id_ed25519
+public_key=$private_key.pub
+
+command -v rbw >/dev/null 2>&1 || fail "rbw is required"
+command -v ssh-keygen >/dev/null 2>&1 || fail "ssh-keygen is required"
+command -v mktemp >/dev/null 2>&1 || fail "mktemp is required"
+
+if [ "$(uname -s)" = Darwin ]; then
+	command -v fdesetup >/dev/null 2>&1 || fail "fdesetup is required on macOS"
+	filevault_status=$(LC_ALL=C fdesetup status 2>&1) ||
+		fail "could not determine FileVault status; the installed key was not changed"
+	[ "$filevault_status" = "FileVault is On." ] ||
+		fail "FileVault must be enabled before installing a local SSH key"
+fi
+
+umask 077
+mkdir -p "$ssh_dir"
+chmod 700 "$ssh_dir"
+
+private_tmp=
+public_tmp=
+derived_tmp=
+
+cleanup() {
+	[ -z "$private_tmp" ] || rm -f "$private_tmp"
+	[ -z "$public_tmp" ] || rm -f "$public_tmp"
+	[ -z "$derived_tmp" ] || rm -f "$derived_tmp"
+}
+
+trap cleanup EXIT HUP INT TERM
+
+private_tmp=$(mktemp "$ssh_dir/.id_ed25519.private.XXXXXX")
+public_tmp=$(mktemp "$ssh_dir/.id_ed25519.public.XXXXXX")
+derived_tmp=$(mktemp "$ssh_dir/.id_ed25519.derived.XXXXXX")
+
+echo "Syncing Bitwarden before reading the SSH key..."
+rbw sync || fail "Bitwarden sync failed; the installed key was not changed"
+rbw get "$item" --field=private_key >"$private_tmp" ||
+	fail "could not export the private key; the installed key was not changed"
+rbw get "$item" --field=public_key >"$public_tmp" ||
+	fail "could not export the public key; the installed key was not changed"
+
+if ! ssh-keygen -y -P '' -f "$private_tmp" >"$derived_tmp"; then
+	fail "the vault private key is invalid or passphrase-protected; the installed key was not changed"
+fi
+
+public_lines=$(awk 'NF { count++ } END { print count + 0 }' "$public_tmp")
+[ "$public_lines" -eq 1 ] ||
+	fail "the vault public key must contain exactly one key; the installed key was not changed"
+
+derived_identity=$(awk 'NF >= 2 { print $1 " " $2; exit }' "$derived_tmp")
+vault_identity=$(awk 'NF >= 2 { print $1 " " $2; exit }' "$public_tmp")
+[ -n "$derived_identity" ] || fail "could not derive a public key from the vault private key"
+[ -n "$vault_identity" ] || fail "the vault public key is invalid"
+[ "$derived_identity" = "$vault_identity" ] ||
+	fail "the vault private and public keys do not match; the installed key was not changed"
+
+if ! key_details=$(ssh-keygen -lf "$public_tmp"); then
+	fail "the vault public key is invalid; the installed key was not changed"
+fi
+fingerprint=$(printf '%s\n' "$key_details" | awk 'NR == 1 { print $2 }')
+[ -n "$fingerprint" ] || fail "could not determine the vault key fingerprint"
+
+[ ! -d "$private_key" ] || fail "$private_key is a directory"
+[ ! -d "$public_key" ] || fail "$public_key is a directory"
+
+chmod 600 "$private_tmp"
+chmod 644 "$public_tmp"
+
+# Each rename is atomic because the temporary files live beside their targets.
+# Install the public key first; SSH authentication depends on the private key.
+mv -f "$public_tmp" "$public_key"
+public_tmp=
+mv -f "$private_tmp" "$private_key"
+private_tmp=
+
+echo "Installed $private_key ($fingerprint)"

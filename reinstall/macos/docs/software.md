@@ -32,6 +32,7 @@ has an explicit, documented version requirement.
 | Group | Formulae |
 | --- | --- |
 | Backup | `age`, `rclone`, `zstd` |
+| Credentials | `pinentry-mac`, `rbw` |
 | Shell and navigation | `fish`, `fzf`, `lsd`, `zoxide` |
 | Files and preview | `bat`, `fd`, `ffmpegthumbnailer`, `p7zip`, `poppler`, `ripgrep`, `unar`, `yazi` |
 | Version control | `git`, `git-delta`, `gh`, `jj`, `lazygit` |
@@ -92,7 +93,7 @@ to automate one application.
   may be installed as a dependency of shared editor tools
 - nvm
 - `spotify_player`
-- aerc, isync, notmuch, msmtp, and rbw during the initial restore
+- aerc, isync, notmuch, and msmtp during the initial restore
 - Starship
 
 Their absence from `Brewfile` is intentional. Historical configuration files
@@ -109,3 +110,21 @@ may remain in the repository.
 
 The resumable bootstrap must be idempotent and must not call `brew cleanup` on
 either the old or rebuilt system.
+
+## SSH Key Refresh
+
+Bitwarden remains authoritative for the Mac SSH key. Bitwarden Desktop is the
+vault-management UI; SSH itself uses `~/.ssh/id_ed25519`, refreshed explicitly
+through `rbw`:
+
+```sh
+rbw register
+ssh-key-sync c0071171-1062-4ea1-a5dc-b49a00051e81
+rbw lock
+```
+
+`rbw register` is required once per Mac for the official Bitwarden service and
+prompts for the personal API key. Later refreshes need only `ssh-key-sync` and
+the native `pinentry-mac` password prompt. The sync helper refuses to write key
+material unless FileVault is enabled, validates both halves of the SSH key,
+and leaves the installed key unchanged on export or validation failure.

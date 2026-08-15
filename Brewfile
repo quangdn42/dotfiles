@@ -7,6 +7,10 @@ brew "rclone"
 brew "rsync"
 brew "zstd"
 
+# Credentials
+brew "pinentry-mac"
+brew "rbw"
+
 # Shell and navigation
 brew "fish"
 brew "fzf"
