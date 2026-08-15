@@ -16,4 +16,4 @@ fileext = ".vcf"
 type = "carddav"
 url = "https://www.googleapis.com/carddav/v1/principals/ammon134@gmail.com/lists/default"
 username = "ammon134@gmail.com"
-password.fetch = ["command", "/home/quangdn/.config/aerc/rbw-get-aerc"]
+password.fetch = ["command", "/home/quangdn/.local/bin/mail-credential"]

@@ -3,9 +3,7 @@ Description=Sync Google contacts to local vdir
 
 [Service]
 Type=oneshot
-# Background timers must not start/unlock rbw: an agent started from a oneshot
-# service can be killed with that service cgroup, causing repeated prompts.
-# Skip timer runs until an interactive rbw unlock has populated the shared
-# agent.
-ExecCondition=/bin/sh -c '/usr/bin/rbw unlocked >/dev/null 2>&1'
+# Background sync reads only the session's local Secret Service cache. Skip
+# quietly until `mail-credential refresh` has populated it from Bitwarden.
+ExecCondition=/bin/sh -c '/home/quangdn/.local/bin/mail-credential status >/dev/null 2>&1'
 ExecStart=/usr/bin/vdirsyncer sync

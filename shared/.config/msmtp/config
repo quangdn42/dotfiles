@@ -10,6 +10,6 @@ port 587
 from ammon134@gmail.com
 user ammon134@gmail.com
 
-passwordeval /home/quangdn/.config/aerc/rbw-get-aerc
+passwordeval /home/quangdn/.local/bin/mail-credential
 
 account default : gmail

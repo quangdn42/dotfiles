@@ -2,7 +2,7 @@ IMAPAccount gmail
 Host imap.gmail.com
 Port 993
 User ammon134@gmail.com
-PassCmd "$HOME/.config/aerc/rbw-get-aerc"
+PassCmd "$HOME/.local/bin/mail-credential"
 TLSType IMAPS
 
 IMAPStore gmail-remote
@@ -28,4 +28,3 @@ SyncState *
 # ExpireUnread no
 # Skip downloading messages larger than 50 MiB
 MaxSize 50m
-
