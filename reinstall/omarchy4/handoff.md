@@ -7,15 +7,15 @@ trusting an old conversation.
 ## Current status
 
 - Branch: `migrate/omarchy-4` at `30b73c5`
-- Last completed phase: archive branch pushed at `b619904`; pre-upgrade
-  inventory captured; root Snapper and `/boot` checkpoints verified.
-- Next action: create and verify the read-only `@home` Btrfs checkpoint
-  described in `README.md`. It must snapshot `/home` (the `@home` subvolume),
-  not `/home/quangdn`.
+- Last completed phase: Phase 1 recovery checkpoints verified.
+- Next action: begin Phase 2: detach only the legacy Omarchy overrides
+  classified for removal or conditional porting in `groups.md`.
 - Working directory: `~/.local/state/dotfiles-omarchy4/20260815T164720Z/`
-- Checkpoints: Snapper root snapshot `708` (description `3.8.4`); `/boot`
-  archive `boot-pre-omarchy4.tar.zst` verifies against its SHA-256 receipt;
-  `@home` snapshot pending. Inventory includes 214 tracked Linux/shared file
+- Checkpoints: Snapper root snapshot `708` (description `3.8.4`); read-only
+  Btrfs `@home` snapshot
+  `@home.pre-omarchy4-20260815T164720Z` (subvolume ID `973`); `/boot` archive
+  `boot-pre-omarchy4.tar.zst` verifies against its SHA-256 receipt and can be
+  decompressed/listed. Inventory includes 214 tracked Linux/shared file
   checksums.
 - Reboot pending: no
 
