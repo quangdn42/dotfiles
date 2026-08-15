@@ -6,12 +6,14 @@ trusting an old conversation.
 
 ## Current status
 
-- Branch: `main` (planning complete; no migration branch created yet)
-- Last completed phase: documentation created
-- Next action: read `README.md`, `groups.md`, and `rollback.md`; create and
-  push `archive/omarchy-3.8.4-pre-quattro` from `b619904` before any desktop
-  configuration change.
-- Checkpoints: none created
+- Branch: `migrate/omarchy-4` at `78fff86`
+- Last completed phase: archive branch pushed at `b619904`; pre-upgrade
+  inventory captured.
+- Next action: create and verify the root Snapper, `@home` Btrfs, and `/boot`
+  checkpoints described in `README.md`.
+- Working directory: `~/.local/state/dotfiles-omarchy4/20260815T164720Z/`
+- Checkpoints: none created yet; inventory includes 214 tracked Linux/shared
+  file checksums.
 - Reboot pending: no
 
 ## Required handoff fields during execution
