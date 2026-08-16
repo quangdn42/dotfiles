@@ -6,10 +6,13 @@ trusting an old conversation.
 
 ## Current status
 
-- Branch: `migrate/omarchy-4` at `30b73c5`
-- Last completed phase: Phase 1 recovery checkpoints verified.
-- Next action: begin Phase 2: detach only the legacy Omarchy overrides
-  classified for removal or conditional porting in `groups.md`.
+- Branch: `migrate/omarchy-4` at `95c8070` (legacy-desktop quarantine staged)
+- Last completed phase: Phase 2 legacy desktop symlinks detached and their
+  tracked sources removed from the migration branch. The v4 monitor default
+  is active for the native-scaling test.
+- Next action: visually assess Group 1 native scaling in terminal, GTK, Qt,
+  Chromium, and Electron. Retain it only if text is crisp at the normal
+  working distance; otherwise restore the documented scale-1 fallback.
 - Working directory: `~/.local/state/dotfiles-omarchy4/20260815T164720Z/`
 - Checkpoints: Snapper root snapshot `708` (description `3.8.4`); read-only
   Btrfs `@home` snapshot
