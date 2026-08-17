@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "quangdn.workspaces",
+  "name": "Named Workspaces",
+  "version": "1.0.0",
+  "author": "Quang Dang",
+  "description": "Persistent A/S/D/E/F workspace indicators",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "Workspaces.qml"
+  },
+  "barWidget": {
+    "displayName": "Named Workspaces",
+    "description": "Persistent A/S/D/E/F workspace indicators",
+    "category": "Compositor",
+    "allowMultiple": false
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.workspaces"
+  }
+}
