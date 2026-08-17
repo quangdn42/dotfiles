@@ -4,9 +4,6 @@
 export OMARCHY_PATH=$HOME/.local/share/omarchy
 export PATH=$OMARCHY_PATH/bin:$PATH:$HOME/.local/bin
 
-# fcitx5-bamboo
-export XMODIFIERS=@im=fcitx
-
 # Set default terminal and editor
 source ~/.config/uwsm/default
 
