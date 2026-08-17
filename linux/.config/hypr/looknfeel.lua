@@ -28,6 +28,10 @@ hl.config {
   --     dim_strength = 0.15,
 }
 
+-- Keep the Bitwarden desktop app tiled while preserving Omarchy's privacy rule.
+-- This user rule is loaded after Omarchy's default app rules.
+o.window("^(Bitwarden)$", { tag = "-floating-window" })
+
 -- https://wiki.hypr.land/Configuring/Basics/Variables/#layout
 -- hl.config({
 --   layout = {
