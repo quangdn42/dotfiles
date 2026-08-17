@@ -83,14 +83,32 @@ o.bind("SUPER + CTRL + T", "Pseudo window", hl.dsp.window.pseudo())
 o.bind("SUPER + M", "Full screen", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 o.bind("SUPER + CTRL + M", "Full width", hl.dsp.window.fullscreen({ mode = "maximized" }))
 
--- Restore resize arrows. Left/right replace v4's grouped-window focus aliases;
--- group navigation remains available on Super+Alt+Tab and its reverse.
+-- Restore layout-aware resize arrows. Left/right replace v4's grouped-window
+-- focus aliases; grouped-window navigation remains on Super+Alt+Tab and its
+-- reverse. In scrolling, Up matches Right and Down matches Left so all four
+-- arrows remain useful.
 hl.unbind("SUPER + CTRL + LEFT")
 hl.unbind("SUPER + CTRL + RIGHT")
-o.bind("SUPER + CTRL + LEFT", "Expand window left", hl.dsp.window.resize({ x = -100, y = 0, relative = true }))
-o.bind("SUPER + CTRL + RIGHT", "Shrink window left", hl.dsp.window.resize({ x = 100, y = 0, relative = true }))
-o.bind("SUPER + CTRL + UP", "Shrink window up", hl.dsp.window.resize({ x = 0, y = -100, relative = true }))
-o.bind("SUPER + CTRL + DOWN", "Expand window down", hl.dsp.window.resize({ x = 0, y = 100, relative = true }))
+hl.unbind("SUPER + code:20")
+hl.unbind("SUPER + code:21")
+hl.unbind("SUPER + SHIFT + code:20")
+hl.unbind("SUPER + SHIFT + code:21")
+
+local function resize_layout_edge(x, y, scrolling_message)
+  return function()
+    local workspace = hl.get_active_workspace()
+    if workspace and workspace.tiled_layout == "scrolling" then
+      hl.dispatch(hl.dsp.layout(scrolling_message))
+    else
+      hl.dispatch(hl.dsp.window.resize({ x = x, y = y, relative = true }))
+    end
+  end
+end
+
+o.bind("SUPER + CTRL + LEFT", "Move layout edge left", resize_layout_edge(-100, 0, "colresize -conf"))
+o.bind("SUPER + CTRL + RIGHT", "Move layout edge right", resize_layout_edge(100, 0, "colresize +conf"))
+o.bind("SUPER + CTRL + UP", "Move layout edge up", resize_layout_edge(0, -100, "colresize +conf"))
+o.bind("SUPER + CTRL + DOWN", "Move layout edge down", resize_layout_edge(0, 100, "colresize -conf"))
 
 -- Super+scroll cycles windows; adding Shift cycles workspaces.
 hl.unbind("SUPER + mouse_up")
@@ -99,14 +117,6 @@ o.bind("SUPER + mouse_up", "Scroll active window forward", hl.dsp.window.cycle_n
 o.bind("SUPER + mouse_down", "Scroll active window backward", hl.dsp.window.cycle_next({ next = false }))
 o.bind("SUPER + SHIFT + mouse_down", "Scroll active workspace forward", hl.dsp.focus({ workspace = "e+1" }))
 o.bind("SUPER + SHIFT + mouse_up", "Scroll active workspace backward", hl.dsp.focus({ workspace = "e-1" }))
-
--- Scrolling-layout column size. Resize arrows above retain general resizing.
-hl.unbind("SUPER + code:20")
-hl.unbind("SUPER + code:21")
-hl.unbind("SUPER + SHIFT + code:20")
-hl.unbind("SUPER + SHIFT + code:21")
-o.bind("SUPER + EQUAL", "Increase scrolling column width", hl.dsp.layout("colresize +conf"))
-o.bind("SUPER + MINUS", "Decrease scrolling column width", hl.dsp.layout("colresize -conf"))
 
 -- Activate grouped windows by number without consuming the number-row
 -- workspace shortcuts.
