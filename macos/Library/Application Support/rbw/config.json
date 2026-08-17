@@ -7,6 +7,6 @@
 	"notifications_url": null,
 	"lock_timeout": 86400,
 	"sync_interval": 3600,
-	"pinentry": "/opt/homebrew/bin/pinentry-mac",
+	"pinentry": "/opt/homebrew/bin/pinentry-tty",
 	"client_cert_path": null
 }
