@@ -18,12 +18,12 @@ trusting an old conversation.
   remaining regular v3 `hyprlock.conf` was moved recoverably to
   `~/.local/state/dotfiles-omarchy4/20260815T164720Z/legacy/hyprlock.conf`.
   Quickshell is healthy, `hyprctl configerrors` is clean, and the active
-  configuration contains no retired desktop references.
-- Next action: complete the Group 7 human lock/suspend and rbw acceptance. No
-  custom rbw lock plugin is installed: the abandoned empty plugin reference was
-  removed at the user's direction. Then perform the remaining Phase 4/6 human
-  checks for menu, launcher, notifications, audio, network, terminals,
-  lock/unlock, suspend/resume, mail, and SSH before final acceptance.
+  configuration contains no retired desktop references. Group 7's custom rbw
+  lock integration and its lock/suspend acceptance are explicitly out of scope
+  at the user's direction; no custom plugin is installed.
+- Next action: perform the remaining normal Phase 4/6 human checks for menu,
+  launcher, notifications, audio, network, terminals, mail, and SSH before
+  final acceptance.
 - Working directory: `~/.local/state/dotfiles-omarchy4/20260815T164720Z/`
 - Checkpoints: Snapper root snapshot `708` (description `3.8.4`); read-only
   Btrfs `@home` snapshot
