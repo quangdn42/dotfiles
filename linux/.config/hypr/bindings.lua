@@ -10,6 +10,13 @@ hl.unbind("SUPER + CTRL + J")
 hl.unbind("SUPER + CTRL + K")
 hl.unbind("SUPER + CTRL + L")
 
+-- Remove Omarchy's arrow-key aliases; HJKL below is the canonical focus and
+-- swap set in this configuration.
+for _, key in ipairs({ "LEFT", "DOWN", "UP", "RIGHT" }) do
+  hl.unbind("SUPER + " .. key)
+  hl.unbind("SUPER + SHIFT + " .. key)
+end
+
 o.bind("SUPER + H", "Focus on left window", hl.dsp.focus({ direction = "l" }))
 o.bind("SUPER + J", "Focus on below window", hl.dsp.focus({ direction = "d" }))
 o.bind("SUPER + K", "Focus on above window", hl.dsp.focus({ direction = "u" }))
@@ -52,6 +59,7 @@ end
 for workspace = 1, 10 do
   local key = "code:" .. tostring(workspace + 9)
   hl.unbind("SUPER + SHIFT + " .. key)
+  hl.unbind("SUPER + SHIFT + ALT + " .. key)
   o.bind(
     "SUPER + SHIFT + " .. key,
     "Move window silently to workspace " .. workspace,
@@ -62,6 +70,8 @@ end
 -- Restore workspace navigation keys. Super+P replaces v4's pseudo-window key;
 -- pseudo-window moves back to Super+Ctrl+T.
 hl.unbind("SUPER + TAB")
+hl.unbind("SUPER + SHIFT + TAB")
+hl.unbind("SUPER + CTRL + TAB")
 hl.unbind("SUPER + P")
 hl.unbind("SUPER + CTRL + T")
 o.bind("SUPER + TAB", "Former workspace", hl.dsp.focus({ workspace = "previous" }))
@@ -93,12 +103,15 @@ o.bind("SUPER + SHIFT + mouse_up", "Scroll active workspace backward", hl.dsp.fo
 -- Scrolling-layout column size. Resize arrows above retain general resizing.
 hl.unbind("SUPER + code:20")
 hl.unbind("SUPER + code:21")
+hl.unbind("SUPER + SHIFT + code:20")
+hl.unbind("SUPER + SHIFT + code:21")
 o.bind("SUPER + EQUAL", "Increase scrolling column width", hl.dsp.layout("colresize +conf"))
 o.bind("SUPER + MINUS", "Decrease scrolling column width", hl.dsp.layout("colresize -conf"))
 
 -- Activate grouped windows by number without consuming the number-row
 -- workspace shortcuts.
 for index = 1, 5 do
+  hl.unbind("SUPER + ALT + code:" .. tostring(index + 9))
   o.bind("CTRL + code:" .. tostring(index + 9), "Switch to group window " .. index, hl.dsp.group.active({ index = index }))
 end
 
@@ -111,7 +124,10 @@ o.bind("SUPER + ALT + M", "Music", { omarchy = "spotify" })
 -- Super+Ctrl+M. Super+Ctrl+Q replaces v4 Calculator; Calculator remains on the
 -- dedicated XF86 key.
 hl.unbind("SUPER + ALT + F")
+hl.unbind("SUPER + ALT + SHIFT + F")
+hl.unbind("SUPER + SHIFT + ALT + E")
 hl.unbind("SUPER + CTRL + Q")
+hl.unbind("SUPER + ALT + S")
 o.bind("SUPER + ALT + F", "File manager (cwd)", { omarchy = "nautilus-cwd" })
 o.bind("SUPER + CTRL + Q", "Lock system", "omarchy-system-lock")
 
