@@ -1,0 +1,144 @@
+-- Personal bindings ported from the pre-Omarchy-4 Hyprland configuration.
+-- Omarchy defaults remain active unless explicitly unbound below.
+
+-- Restore HJKL window focus. Super+J and Super+L replace the v4 split and
+-- workspace-layout toggles, which move back to their previous Ctrl variants.
+hl.unbind("SUPER + J")
+hl.unbind("SUPER + K")
+hl.unbind("SUPER + L")
+hl.unbind("SUPER + CTRL + J")
+hl.unbind("SUPER + CTRL + K")
+hl.unbind("SUPER + CTRL + L")
+
+-- Remove Omarchy's arrow-key aliases; HJKL below is the canonical focus and
+-- swap set in this configuration.
+for _, key in ipairs({ "LEFT", "DOWN", "UP", "RIGHT" }) do
+  hl.unbind("SUPER + " .. key)
+  hl.unbind("SUPER + SHIFT + " .. key)
+end
+
+o.bind("SUPER + H", "Focus on left window", hl.dsp.focus({ direction = "l" }))
+o.bind("SUPER + J", "Focus on below window", hl.dsp.focus({ direction = "d" }))
+o.bind("SUPER + K", "Focus on above window", hl.dsp.focus({ direction = "u" }))
+o.bind("SUPER + L", "Focus on right window", hl.dsp.focus({ direction = "r" }))
+o.bind("SUPER + CTRL + J", "Toggle window split", hl.dsp.layout("togglesplit"))
+o.bind("SUPER + CTRL + K", "Keybindings", "omarchy-menu-keybindings")
+o.bind("SUPER + CTRL + L", "Toggle workspace layout", "omarchy-hyprland-workspace-layout-toggle")
+
+o.bind("SUPER + SHIFT + H", "Swap window to the left", hl.dsp.window.swap({ direction = "l" }))
+o.bind("SUPER + SHIFT + J", "Swap window down", hl.dsp.window.swap({ direction = "d" }))
+o.bind("SUPER + SHIFT + K", "Swap window up", hl.dsp.window.swap({ direction = "u" }))
+o.bind("SUPER + SHIFT + L", "Swap window to the right", hl.dsp.window.swap({ direction = "r" }))
+
+-- Restore the named workspace layer.
+local named_workspaces = {
+  { key = "A", id = "11", name = "Home" },
+  { key = "S", id = "12", name = "Messages" },
+  { key = "D", id = "13", name = "Development" },
+  { key = "E", id = "14", name = "Editing" },
+  { key = "F", id = "15", name = "Web" },
+}
+
+for _, workspace in ipairs(named_workspaces) do
+  hl.workspace_rule({ workspace = workspace.id, persistent = true })
+  hl.unbind("SUPER + " .. workspace.key)
+  hl.unbind("SUPER + SHIFT + " .. workspace.key)
+  o.bind(
+    "SUPER + " .. workspace.key,
+    workspace.name .. " workspace",
+    hl.dsp.focus({ workspace = workspace.id })
+  )
+  o.bind(
+    "SUPER + SHIFT + " .. workspace.key,
+    "Move window to " .. workspace.name .. " workspace",
+    hl.dsp.window.move({ workspace = workspace.id, follow = false })
+  )
+end
+
+-- Keep number-row moves silent, matching the previous configuration.
+for workspace = 1, 10 do
+  local key = "code:" .. tostring(workspace + 9)
+  hl.unbind("SUPER + SHIFT + " .. key)
+  hl.unbind("SUPER + SHIFT + ALT + " .. key)
+  o.bind(
+    "SUPER + SHIFT + " .. key,
+    "Move window silently to workspace " .. workspace,
+    hl.dsp.window.move({ workspace = tostring(workspace), follow = false })
+  )
+end
+
+-- Restore workspace navigation keys. Super+P replaces v4's pseudo-window key;
+-- pseudo-window moves back to Super+Ctrl+T.
+hl.unbind("SUPER + TAB")
+hl.unbind("SUPER + SHIFT + TAB")
+hl.unbind("SUPER + CTRL + TAB")
+hl.unbind("SUPER + P")
+hl.unbind("SUPER + CTRL + T")
+o.bind("SUPER + TAB", "Former workspace", hl.dsp.focus({ workspace = "previous" }))
+o.bind("SUPER + N", "Next workspace", hl.dsp.focus({ workspace = "e+1" }))
+o.bind("SUPER + P", "Previous workspace", hl.dsp.focus({ workspace = "e-1" }))
+o.bind("SUPER + CTRL + T", "Pseudo window", hl.dsp.window.pseudo())
+
+-- Restore the old fullscreen and width controls.
+o.bind("SUPER + M", "Full screen", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+o.bind("SUPER + CTRL + M", "Full width", hl.dsp.window.fullscreen({ mode = "maximized" }))
+
+-- Restore layout-aware resize arrows. Left/right replace v4's grouped-window
+-- focus aliases; grouped-window navigation remains on Super+Alt+Tab and its
+-- reverse. In scrolling, Up matches Right and Down matches Left so all four
+-- arrows remain useful.
+hl.unbind("SUPER + CTRL + LEFT")
+hl.unbind("SUPER + CTRL + RIGHT")
+hl.unbind("SUPER + code:20")
+hl.unbind("SUPER + code:21")
+hl.unbind("SUPER + SHIFT + code:20")
+hl.unbind("SUPER + SHIFT + code:21")
+
+local function resize_layout_edge(x, y, scrolling_message)
+  return function()
+    local workspace = hl.get_active_workspace()
+    if workspace and workspace.tiled_layout == "scrolling" then
+      hl.dispatch(hl.dsp.layout(scrolling_message))
+    else
+      hl.dispatch(hl.dsp.window.resize({ x = x, y = y, relative = true }))
+    end
+  end
+end
+
+o.bind("SUPER + CTRL + LEFT", "Move layout edge left", resize_layout_edge(-100, 0, "colresize -conf"))
+o.bind("SUPER + CTRL + RIGHT", "Move layout edge right", resize_layout_edge(100, 0, "colresize +conf"))
+o.bind("SUPER + CTRL + UP", "Move layout edge up", resize_layout_edge(0, -100, "colresize +conf"))
+o.bind("SUPER + CTRL + DOWN", "Move layout edge down", resize_layout_edge(0, 100, "colresize -conf"))
+
+-- Super+scroll cycles windows; adding Shift cycles workspaces.
+hl.unbind("SUPER + mouse_up")
+hl.unbind("SUPER + mouse_down")
+o.bind("SUPER + mouse_up", "Scroll active window forward", hl.dsp.window.cycle_next())
+o.bind("SUPER + mouse_down", "Scroll active window backward", hl.dsp.window.cycle_next({ next = false }))
+o.bind("SUPER + SHIFT + mouse_down", "Scroll active workspace forward", hl.dsp.focus({ workspace = "e+1" }))
+o.bind("SUPER + SHIFT + mouse_up", "Scroll active workspace backward", hl.dsp.focus({ workspace = "e-1" }))
+
+-- Activate grouped windows by number without consuming the number-row
+-- workspace shortcuts.
+for index = 1, 5 do
+  hl.unbind("SUPER + ALT + code:" .. tostring(index + 9))
+  o.bind("CTRL + code:" .. tostring(index + 9), "Switch to group window " .. index, hl.dsp.group.active({ index = index }))
+end
+
+-- Restore the previous application aliases while keeping equivalent v4 keys.
+o.bind("SUPER + ALT + B", "Browser", { omarchy = "browser" })
+o.bind("SUPER + ALT + D", "Docker", { tui = "lazydocker" })
+o.bind("SUPER + ALT + M", "Music", { omarchy = "spotify" })
+
+-- Super+Alt+F replaces v4 full-width; full-width is restored above on
+-- Super+Ctrl+M. Super+Ctrl+Q replaces v4 Calculator; Calculator remains on the
+-- dedicated XF86 key.
+hl.unbind("SUPER + ALT + F")
+hl.unbind("SUPER + ALT + SHIFT + F")
+hl.unbind("SUPER + SHIFT + ALT + E")
+hl.unbind("SUPER + CTRL + Q")
+hl.unbind("SUPER + ALT + S")
+o.bind("SUPER + ALT + F", "File manager (cwd)", { omarchy = "nautilus-cwd" })
+o.bind("SUPER + CTRL + Q", "Lock system", "omarchy-system-lock")
+
+-- vim: ts=2 sts=2 sw=2 et

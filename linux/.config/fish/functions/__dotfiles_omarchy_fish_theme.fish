@@ -1,7 +1,7 @@
 function __dotfiles_omarchy_fish_theme
     set -l omarchy_theme tokyo-night
-    set -l theme_name_file $HOME/.config/omarchy/current/theme.name
-    set -l colors_file $HOME/.config/omarchy/current/theme/colors.toml
+    set -l theme_name_file $HOME/.local/state/omarchy/current/theme.name
+    set -l colors_file $HOME/.local/state/omarchy/current/theme/colors.toml
 
     if test -r $theme_name_file
         read omarchy_theme <$theme_name_file

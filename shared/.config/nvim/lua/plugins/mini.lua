@@ -1,7 +1,7 @@
 return {
   -- Better text-objects
   {
-    'echasnovski/mini.ai',
+    'nvim-mini/mini.ai',
     version = '*',
     event = 'VeryLazy',
     opts = function()
@@ -52,7 +52,7 @@ return {
   -- hipatterns
   -- NOTE: consider https://github.com/catgoose/nvim-colorizer.lua when working with FE
   {
-    'echasnovski/mini.hipatterns',
+    'nvim-mini/mini.hipatterns',
     version = '*',
     event = 'BufReadPre',
     config = function()
@@ -69,7 +69,7 @@ return {
 
   -- indentscope
   {
-    'echasnovski/mini.indentscope',
+    'nvim-mini/mini.indentscope',
     version = '*',
     event = { 'BufReadPre', 'BufNewFile' },
     opts = {
@@ -170,7 +170,7 @@ return {
 
   -- move
   {
-    'echasnovski/mini.move',
+    'nvim-mini/mini.move',
     version = '*',
     event = 'VeryLazy',
     opts = {
@@ -192,7 +192,7 @@ return {
 
   -- surround
   {
-    'echasnovski/mini.surround',
+    'nvim-mini/mini.surround',
     version = '*',
     event = 'VeryLazy',
     config = function()
