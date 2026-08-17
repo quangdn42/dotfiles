@@ -1,5 +1,5 @@
 local theme_module = 'omarchy.theme'
-local theme_file = vim.fn.expand '~/.config/omarchy/current/theme/neovim.lua'
+local theme_file = vim.fn.expand '~/.local/state/omarchy/current/theme/neovim.lua'
 
 local function theme_signature()
   local stat = (vim.uv or vim.loop).fs_stat(theme_file)
