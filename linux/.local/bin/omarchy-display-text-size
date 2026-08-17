@@ -1,0 +1,113 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# The tracked clone of Omarchy's monitor plugin invokes this executable by its
+# user-local path. Keep this as a narrow post-processing shim instead of
+# copying or editing the packaged command. The `omarchy display text size`
+# dispatcher still uses the packaged policy, so use the monitor widget (or this
+# executable) for the custom ratios.
+readonly UPSTREAM_COMMAND=/usr/share/omarchy/bin/omarchy-display-text-size
+readonly REFERENCE_BASE_SIZE=14
+readonly TERMINAL_SIZE_AT_REFERENCE=16
+readonly GTK_FACTOR_AT_REFERENCE=1.5
+
+usage_note() {
+  cat <<EOF
+
+Local dotfiles scaling policy:
+  terminal size = base-size / $REFERENCE_BASE_SIZE * $TERMINAL_SIZE_AT_REFERENCE
+  GTK factor = base-size / $REFERENCE_BASE_SIZE * $GTK_FACTOR_AT_REFERENCE
+EOF
+}
+
+set_terminal_size() {
+  local terminal_size="$1"
+  local gtk_factor="$2"
+  local ghostty_size
+
+  # Ghostty's GTK runtime applies the desktop text-scaling factor to its own
+  # font-size. Compensate so its effective size matches the other terminals.
+  ghostty_size="$(awk \
+    -v size="$terminal_size" \
+    -v factor="$gtk_factor" \
+    'BEGIN { printf "%.4f", size / factor }')"
+
+  if [[ -f $HOME/.config/alacritty/alacritty.toml ]]; then
+    sed -i -E "s/^size[[:space:]]*=.*/size = $terminal_size/" "$HOME/.config/alacritty/alacritty.toml"
+  fi
+
+  if [[ -f $HOME/.config/kitty/kitty.conf ]]; then
+    sed -i -E "s/^font_size[[:space:]]+.*/font_size $terminal_size/" "$HOME/.config/kitty/kitty.conf"
+    pkill -USR1 kitty 2>/dev/null || true
+  fi
+
+  if [[ -f $HOME/.config/ghostty/config ]]; then
+    sed -i -E "s/^font-size = .*/font-size = $ghostty_size/" "$HOME/.config/ghostty/config"
+    pkill -SIGUSR2 ghostty 2>/dev/null || true
+  fi
+
+  if [[ -f $HOME/.config/foot/foot.ini ]]; then
+    sed -i -E "s/(:size=)[0-9.]+/\1$terminal_size/" "$HOME/.config/foot/foot.ini"
+  fi
+}
+
+terminal_size_for() {
+  local size="$1"
+
+  awk \
+    -v size="$size" \
+    -v reference="$REFERENCE_BASE_SIZE" \
+    -v reference_size="$TERMINAL_SIZE_AT_REFERENCE" \
+    'BEGIN { printf "%.4f", size / reference * reference_size }'
+}
+
+gtk_factor_for() {
+  local size="$1"
+
+  awk \
+    -v size="$size" \
+    -v reference="$REFERENCE_BASE_SIZE" \
+    -v reference_factor="$GTK_FACTOR_AT_REFERENCE" \
+    'BEGIN { printf "%.4f", size / reference * reference_factor }'
+}
+
+set_gtk_factor() {
+  local factor="$1"
+
+  gsettings set org.gnome.desktop.interface text-scaling-factor "$factor" 2>/dev/null || true
+}
+
+apply_local_policy() {
+  local size="$1"
+  local gtk_factor
+  local terminal_size
+
+  gtk_factor="$(gtk_factor_for "$size")"
+  terminal_size="$(terminal_size_for "$size")"
+  set_terminal_size "$terminal_size" "$gtk_factor"
+  set_gtk_factor "$gtk_factor"
+}
+
+if [[ ! -x $UPSTREAM_COMMAND ]]; then
+  echo "Missing upstream command: $UPSTREAM_COMMAND" >&2
+  exit 1
+fi
+
+case "${1:-}" in
+-h | --help)
+  "$UPSTREAM_COMMAND" "$@"
+  usage_note
+  ;;
+"")
+  "$UPSTREAM_COMMAND"
+  ;;
+reset | default)
+  "$UPSTREAM_COMMAND" "$REFERENCE_BASE_SIZE"
+  apply_local_policy "$REFERENCE_BASE_SIZE"
+  ;;
+*)
+  "$UPSTREAM_COMMAND" "$@"
+  apply_local_policy "$1"
+  ;;
+esac
