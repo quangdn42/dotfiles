@@ -6,28 +6,24 @@ trusting an old conversation.
 
 ## Current status
 
-- Branch: `migrate/omarchy-4` at `85a484b`, aligned with
-  `origin/migrate/omarchy-4`. Former WIP commit `da15cf5` was soft-reset into
-  the staging area for review alongside the scaling migration.
-- Last completed phase: Phase 3 Quattro upgrade and first reboot completed on
-  2026-08-16. The stock-v4 safety subset of Phase 4 is clean. Scaling Groups 1
-  and 3 are accepted with a ported scale-1/GDK-1 fallback and the tracked
-  `~/.local/bin/omarchy-display-text-size` shim: monitor and GDK scale are 1;
-  shell base size 14 maps to GTK text scaling 1.5 and effective terminal size
-  16. Ghostty compensates for GTK scaling with a configured size of 10.6667.
-  The enabled, tracked `quangdn.monitor` clone invokes the policy by absolute
-  user-local path because the stock shell puts `/usr/share/omarchy/bin` first
-  in its `PATH`. Chromium uses its ordinary stock v4 flags and scales correctly
-  without a forced device factor. Global Electron, Spotify, Typora, Qt, and
-  Steam scale overrides were removed; application-specific scaling will only
-  be reintroduced if normal use exposes a problem.
-- Next action: perform the Phase 4 human acceptance checks for menu, launcher,
-  notifications, audio, network, terminal, lock/unlock, and suspend/resume.
-  First split and review the staged former-WIP changes; do not commit or restow
-  its retired Mako path. Then continue with Group 2 input/session behavior and
-  the remaining terminal preferences in Group 4. Revisit application-specific
-  scaling only if normal use exposes an issue; do not reintroduce a legacy
-  Omarchy source path.
+- Branch: `migrate/omarchy-4`, currently ten commits ahead of
+  `origin/migrate/omarchy-4`; unrelated local changes to Mise and Starship are
+  intentionally left uncommitted.
+- Last completed phase: Phase 5 restoration is in progress. Groups 1/3
+  (scaling), 2 (fcitx environment), 4 (terminal preferences), 5 (Hyprland
+  bindings/workspaces), and 6 (look/layout) are ported. Group 8 is ported in
+  `c311003`: Fish and Delta now use the v4 state path and update on `theme-set`;
+  Bat follows the themed terminal through `BAT_THEME=ansi`; custom Neovim uses
+  v4 state and passed headless startup. Group 9 uses native Quickshell; the
+  remaining regular v3 `hyprlock.conf` was moved recoverably to
+  `~/.local/state/dotfiles-omarchy4/20260815T164720Z/legacy/hyprlock.conf`.
+  Quickshell is healthy, `hyprctl configerrors` is clean, and the active
+  configuration contains no retired desktop references.
+- Next action: complete the Group 7 human lock/suspend and rbw acceptance. No
+  custom rbw lock plugin is installed: the abandoned empty plugin reference was
+  removed at the user's direction. Then perform the remaining Phase 4/6 human
+  checks for menu, launcher, notifications, audio, network, terminals,
+  lock/unlock, suspend/resume, mail, and SSH before final acceptance.
 - Working directory: `~/.local/state/dotfiles-omarchy4/20260815T164720Z/`
 - Checkpoints: Snapper root snapshot `708` (description `3.8.4`); read-only
   Btrfs `@home` snapshot
