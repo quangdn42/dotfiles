@@ -8,7 +8,7 @@ set -euo pipefail
 # dispatcher still uses the packaged policy, so use the monitor widget (or this
 # executable) for the custom ratios.
 readonly UPSTREAM_COMMAND=/usr/share/omarchy/bin/omarchy-display-text-size
-readonly REFERENCE_BASE_SIZE=14
+readonly REFERENCE_BASE_SIZE=20
 readonly TERMINAL_SIZE_AT_REFERENCE=16
 readonly GTK_FACTOR_AT_REFERENCE=1.5
 
